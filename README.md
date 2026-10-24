@@ -2,6 +2,9 @@
 
 RuneLite reminders for low prayer and expiring boosts, stacked above your character so simultaneous warnings remain visible.
 
+<img width="457" height="616" alt="image" src="https://github.com/user-attachments/assets/d5cadb28-0d21-4fec-8bfa-e463cc999a39" />
+
+
 ## Features
 
 - Low-prayer warning with a configurable threshold, text, colour, and display duration.
@@ -14,8 +17,11 @@ RuneLite reminders for low prayer and expiring boosts, stacked above your charac
 ## Settings
 
 **Overhead Display Time** controls how long messages remain visible (default 3 seconds). Low Prayer has an optional duration override; 0 uses the shared duration. Soulflame Horn uses six seconds and clears when Attack, Strength, or Defence changes.
+<img width="221" height="122" alt="image" src="https://github.com/user-attachments/assets/6bca1e5e-aca7-4311-882f-85b4f58ce44f" />
+
 
 Low Prayer defaults to enabled at threshold 20. It warns once when prayer reaches or falls below the threshold, including login with low prayer. Prayer must rise above the threshold before another warning can occur. Other reminder types default to disabled.
+<img width="225" height="188" alt="image" src="https://github.com/user-attachments/assets/06d4b352-c467-4779-85b7-1c67626fe4b3" />
 
 **Show remaining seconds** displays the time until a message disappears; it does not predict prayer drain or buff expiry. **Height above player** adjusts placement. Messages stack upward, oldest at the bottom. Expiring messages disappear independently.
 
