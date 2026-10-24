@@ -37,14 +37,14 @@ Disable **Overhead Notifications** and **Prayer Overhead Text** when using this 
 
 ## Development and testing
 
-Requires a Java 17 JDK for the local build. Plugin source targets Java 11. From the project directory:
+Requires a Java 17 JDK with JAVA_HOME configured. Plugin source targets Java 11. From the project directory:
 
 ```powershell
-.\dev.cmd build
-.\dev.cmd run
+.\gradlew.bat build
+.\gradlew.bat run
 ```
 
-Alternatively, set `JAVA_HOME` to your JDK and run `gradlew.bat build` or `gradlew.bat run`. The Windows helper can also use the portable JDK installed beside this project in `../.tools/jdk17`.
+On Linux or macOS, use `./gradlew build` and `./gradlew run`. Run `gradlew.bat test` (or `./gradlew test`) for the automated tests.
 
 The development client registers the plugin directly. For Jagex Accounts, follow [RuneLite's development-client login guide](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
 
@@ -52,7 +52,6 @@ There are 24 automated tests covering thresholds, rearming, stacking, independen
 
 On Windows, the development run task disables Java 2D interface acceleration to avoid the [known sidebar artifacting issue](https://github.com/runelite/runelite/wiki/Disable-Hardware-Acceleration). This leaves the game's GPU/117 HD plugins available.
 
-See [development notes](docs/DEVELOPMENT.md) for detailed local setup and manual checks.
 
 ## Credits and licensing
 
