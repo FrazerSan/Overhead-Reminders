@@ -31,7 +31,14 @@ A blank message suppresses that reminder. `{0}` inserts the reminder name. Messa
 
 ## Installation
 
-Plugin Hub submission is being prepared; the plugin is not listed yet. Once RuneLite has reviewed and accepted the submission, install **Overhead Reminders** from the Plugin Hub. Until then, use the development client described below.
+**Overhead Reminders** is available in the RuneLite Plugin Hub.
+
+1. Open your normal RuneLite client.
+2. Open **Configuration** (the wrench icon), then click **Plugin Hub** at the bottom.
+3. Search for **Overhead Reminders** by **FrazerSan**.
+4. Click **Install**, then configure the reminders you want to use.
+
+If it does not appear immediately, restart RuneLite and search again. The development client is no longer required to use the plugin.
 
 Disable **Overhead Notifications** and **Prayer Overhead Text** when using this combined plugin to avoid separate duplicate warnings.
 
