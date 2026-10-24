@@ -1,4 +1,4 @@
-package com.shuddie.overhead;
+package com.frazersan.overheadreminders;
 
 import com.google.inject.Provides;
 import javax.inject.Inject;

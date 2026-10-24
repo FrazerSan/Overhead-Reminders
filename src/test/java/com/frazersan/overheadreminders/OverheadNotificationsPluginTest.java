@@ -1,4 +1,4 @@
-package com.shuddie.overhead;
+package com.frazersan.overheadreminders;
 
 import net.runelite.client.RuneLite;
 import net.runelite.client.externalplugins.ExternalPluginManager;

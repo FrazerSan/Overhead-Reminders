@@ -1,4 +1,4 @@
-package com.shuddie.overhead;
+package com.frazersan.overheadreminders;
 
 /** Threshold latch: display expiry alone cannot rearm a low-prayer warning. */
 final class LowPrayerState

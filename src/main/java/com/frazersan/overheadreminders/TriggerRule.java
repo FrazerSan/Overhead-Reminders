@@ -1,4 +1,4 @@
-package com.shuddie.overhead;
+package com.frazersan.overheadreminders;
 
 import java.awt.*;
 import java.util.function.BooleanSupplier;

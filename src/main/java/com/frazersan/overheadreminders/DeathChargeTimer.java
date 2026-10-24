@@ -23,7 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.shuddie.overhead;
+package com.frazersan.overheadreminders;
 
 import java.util.function.LongSupplier;
 

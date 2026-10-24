@@ -1,4 +1,4 @@
-package com.shuddie.overhead;
+package com.frazersan.overheadreminders;
 
 import java.awt.Dimension;
 import java.awt.FontMetrics;

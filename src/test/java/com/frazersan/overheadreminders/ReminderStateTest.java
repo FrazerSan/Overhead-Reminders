@@ -1,4 +1,4 @@
-package com.shuddie.overhead;
+package com.frazersan.overheadreminders;
 
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.Test;
