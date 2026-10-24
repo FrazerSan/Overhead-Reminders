@@ -12,7 +12,7 @@ This is based on Shuddie/overhead-notifications and Xta-Dev/prayer-notif. Their 
 
 Validation: 24 automated tests pass, including regressions using actual highlighted game messages. Gameplay testing confirmed the stacked reminders, low-prayer restoration clearing, and thrall/Ward recast clearing. Source targets Java 11; the plugin declares `build=standard`.
 
-Generated-by: OpenAI Codex
+Generated-by: FrazerSan & OpenAI Codex
 
 ## Submission steps
 
