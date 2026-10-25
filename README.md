@@ -20,7 +20,7 @@ RuneLite reminders for low prayer and expiring boosts, stacked above your charac
 <img width="221" height="122" alt="image" src="https://github.com/user-attachments/assets/6bca1e5e-aca7-4311-882f-85b4f58ce44f" />
 
 
-Low Prayer defaults to enabled at threshold 20. It warns once when prayer reaches or falls below the threshold, including login with low prayer. Prayer must rise above the threshold before another warning can occur. Other reminder types default to disabled.
+Low Prayer uses a threshold when enabled. It warns once when prayer reaches or falls below the threshold, including login with low prayer. Prayer must rise above the threshold before another warning can occur.
 
 <img width="225" height="188" alt="image" src="https://github.com/user-attachments/assets/06d4b352-c467-4779-85b7-1c67626fe4b3" />
 
@@ -55,7 +55,7 @@ On Linux or macOS, use `./gradlew build` and `./gradlew run`. Run `gradlew.bat t
 
 The development client registers the plugin directly. For Jagex Accounts, follow [RuneLite's development-client login guide](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
 
-There are 54 automated tests covering thresholds, rearming, stacking, independent expiry, duplicate suppression, successful/failed recasts with live-client message formatting, lifecycle cleanup, Death Charge timing, rendering, combat inventory checks across styles, boost thresholds, fixed-effect exclusions, pie tracking and reboost clearing. The user has also confirmed gameplay behavior, including low-prayer restoration and thrall/Ward recast clearing.
+There are 61 automated tests covering thresholds, rearming, stacking, independent expiry, duplicate suppression, successful/failed recasts with live-client message formatting, lifecycle cleanup, Death Charge timing, rendering, combat inventory checks across styles, boost thresholds, fixed-effect exclusions, pie tracking and reboost clearing. The user has also confirmed gameplay behavior, including low-prayer restoration and thrall/Ward recast clearing.
 
 On Windows, the development run task disables Java 2D interface acceleration to avoid the [known sidebar artifacting issue](https://github.com/runelite/runelite/wiki/Disable-Hardware-Acceleration). This leaves the game's GPU/117 HD plugins available.
 

@@ -37,7 +37,7 @@ public class ConfigDefaultsMigrationTest
         assertEquals("15", values.get("lowPrayerDuration"));
         assertEquals("15", values.get("meleeBoostTimeout"));
         assertEquals("Low Prayer", values.get("lowPrayerMessage"));
-        assertEquals("Range Boost", values.get("rangedBoostMessage"));
+        assertEquals("Drink Range Boost", values.get("rangedBoostMessage"));
         assertEquals("Agility Boost", values.get("summerPieMessage"));
     }
 
@@ -74,5 +74,40 @@ public class ConfigDefaultsMigrationTest
         assertEquals(15, config.wildPieTimeout());
         assertEquals(15, config.summerPieTimeout());
         assertEquals("Agility Boost", config.summerPieMessage());
+    }
+    @Test
+    public void actionDefaultsUpdateOnceWithoutChangingCustomMessagesOrEnabledChoices()
+    {
+        Map<String, String> values = new HashMap<>();
+        values.put("tidyDefaultsRevision", "1");
+        values.put("enableLowPrayer", "true");
+        values.put("divinePotMessage", "Divine Expired!");
+        values.put("thrallMessage", "My thrall");
+        values.put("prayerRegenMessage", "Prayer regeneration potion Expired!");
+        ConfigManager manager = manager(values);
+        ConfigDefaultsMigration.apply(manager);
+        assertEquals("Drink Divine", values.get("divinePotMessage"));
+        assertEquals("My thrall", values.get("thrallMessage"));
+        assertEquals("true", values.get("enableLowPrayer"));
+        assertEquals("Prayer regeneration potion Expired!", values.get("prayerRegenMessage"));
+        values.put("divinePotMessage", "Divine Expired!");
+        ConfigDefaultsMigration.apply(manager);
+        assertEquals("Divine Expired!", values.get("divinePotMessage"));
+    }
+
+    @Test
+    public void freshReminderDefaultsAreAllDisabled() throws Exception
+    {
+        OverheadNotificationsConfig config = mock(OverheadNotificationsConfig.class, CALLS_REAL_METHODS);
+        for (java.lang.reflect.Method method : OverheadNotificationsConfig.class.getDeclaredMethods())
+        {
+            if (method.isDefault() && method.getReturnType() == boolean.class)
+            {
+                assertEquals(method.getName(), false, method.invoke(config));
+            }
+        }
+        assertEquals("Drink Divine", config.divinePotMessage());
+        assertEquals("Cast Thrall", config.thrallMessage());
+        assertEquals("Invigorate Saturated Heart", config.saturatedHeartMessage());
     }
 }

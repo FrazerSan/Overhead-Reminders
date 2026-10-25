@@ -80,6 +80,8 @@ final class BoostReminderController
     private final Map<Skill, Integer> experience = new EnumMap<>(Skill.class);
     private final Map<Skill, Integer> bonuses = new EnumMap<>(Skill.class);
     private boolean combatActivity;
+    // A Divine expiry belongs to the Divine reminder until another boost is applied.
+    private final EnumSet<Skill> divineEpisodes = EnumSet.noneOf(Skill.class);
     private final EnumSet<Skill> boostedAgain = EnumSet.noneOf(Skill.class);
     private EnumSet<Skill> previousSupplies = EnumSet.noneOf(Skill.class);
 
@@ -139,6 +141,21 @@ final class BoostReminderController
             experience.putIfAbsent(skill, client.getSkillExperience(skill));
             sampleBonus(skill, client.getRealSkillLevel(skill), client.getBoostedSkillLevel(skill));
         }
+        for (Skill skill : TRACKED)
+        {
+            if (!config.enableDivinePot())
+            {
+                divineEpisodes.remove(skill);
+            }
+            else if (divineBoostActive(skill))
+            {
+                divineEpisodes.add(skill);
+            }
+            else if (boostedAgain.contains(skill))
+            {
+                divineEpisodes.remove(skill);
+            }
+        }
         EnumSet<Skill> available = BoostItems.available(inventory.getItems(),
             client.getVarbitValue(VarbitID.IMBUED_HEART_TIMER) == 0);
         for (Rule rule : rules)
@@ -193,7 +210,7 @@ final class BoostReminderController
                 // Continue tracking after the final half-pie is eaten.
                 rule.trackingPie = true;
             }
-            boolean canRemind = rule.type.combat ? supply && !fixedBoostActive(skill) : rule.trackingPie;
+            boolean canRemind = rule.type.combat ? supply && !fixedBoostActive(skill) && !divineEpisodes.contains(skill) : rule.trackingPie;
             eligible |= canRemind;
             low |= canRemind && bonus <= rule.threshold.getAsInt();
             reapplied |= boostedAgain.contains(skill);
@@ -227,6 +244,12 @@ final class BoostReminderController
         {
             return true;
         }
+        return divineBoostActive(skill)
+            || (skill == Skill.MAGIC && client.getVarbitValue(VarbitID.SATURATED_HEART_TIME) > 0);
+    }
+
+    private boolean divineBoostActive(Skill skill)
+    {
         switch (skill)
         {
             case ATTACK:
@@ -237,8 +260,7 @@ final class BoostReminderController
                     || client.getVarbitValue(VarbitID.DIVINECOMBAT_POTION_TIME) > 0;
             case MAGIC:
                 return client.getVarbitValue(VarbitID.DIVINEMAGIC_POTION_TIME) > 0
-                    || client.getVarbitValue(VarbitID.DIVINEBATTLEMAGE_POTION_TIME) > 0
-                    || client.getVarbitValue(VarbitID.SATURATED_HEART_TIME) > 0;
+                    || client.getVarbitValue(VarbitID.DIVINEBATTLEMAGE_POTION_TIME) > 0;
             case RANGED:
                 return client.getVarbitValue(VarbitID.DIVINERANGE_POTION_TIME) > 0
                     || client.getVarbitValue(VarbitID.DIVINEBASTION_POTION_TIME) > 0;
@@ -270,5 +292,6 @@ final class BoostReminderController
         combatActivity = false;
         boostedAgain.clear();
         previousSupplies.clear();
+        divineEpisodes.clear();
     }
 }

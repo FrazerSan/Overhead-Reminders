@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
@@ -29,7 +30,7 @@ import java.util.List;
 @PluginDescriptor(
         name = "Overhead Reminders",
         description = "Stacked reminders for low prayer, expiring effects, combat boosts and pies",
-        tags = {"overhead", "notification", "chat", "thrall", "overload", "boost"}
+        tags = {"overhead", "notification", "chat", "thrall", "overload", "boost", "raid", "slayer", "reminder", "remind"}
 )
 public class OverheadNotificationsPlugin extends Plugin
 {
@@ -76,6 +77,14 @@ public class OverheadNotificationsPlugin extends Plugin
     @Inject
     private BoostReminderController boostReminders;
 
+    private static final int[] DIVINE_TIMERS = {
+        VarbitID.DIVINEATTACK_POTION_TIME, VarbitID.DIVINESTRENGTH_POTION_TIME,
+        VarbitID.DIVINEDEFENCE_POTION_TIME, VarbitID.DIVINECOMBAT_POTION_TIME,
+        VarbitID.DIVINEMAGIC_POTION_TIME, VarbitID.DIVINEBATTLEMAGE_POTION_TIME,
+        VarbitID.DIVINERANGE_POTION_TIME, VarbitID.DIVINEBASTION_POTION_TIME
+    };
+    private final int[] previousDivineTimers = new int[DIVINE_TIMERS.length];
+
     private final LowPrayerState lowPrayer = new LowPrayerState();
     private DeathChargeTimer timer = null;
     private List<TriggerRule> triggerRules;
@@ -86,6 +95,7 @@ public class OverheadNotificationsPlugin extends Plugin
         log.info("Overhead Reminders started!");
         timer = new DeathChargeTimer();
         notifications.clear();
+        java.util.Arrays.fill(previousDivineTimers, 0);
         boostReminders.reset();
         lowPrayer.reset();
         overlayManager.add(overlay);
@@ -180,6 +190,16 @@ public class OverheadNotificationsPlugin extends Plugin
         {
             return;
         }
+        for (int i = 0; i < DIVINE_TIMERS.length; i++)
+        {
+            int remaining = client.getVarbitValue(DIVINE_TIMERS[i]);
+            if (remaining > previousDivineTimers[i])
+            {
+                // A fresh dose also counts when the stat itself does not rise.
+                notifications.remove("Divine Pot");
+            }
+            previousDivineTimers[i] = remaining;
+        }
         boostReminders.onGameTick();
         if (timer.getState() == DeathChargeTimerState.EXPIRED)
         {
@@ -261,6 +281,7 @@ public class OverheadNotificationsPlugin extends Plugin
     private void resetSession()
     {
         notifications.clear();
+        java.util.Arrays.fill(previousDivineTimers, 0);
         boostReminders.reset();
         lowPrayer.reset();
         if (timer != null)

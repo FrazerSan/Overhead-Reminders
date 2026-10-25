@@ -47,6 +47,7 @@ public class PluginBehaviorTest
         when(client.getGameState()).thenReturn(GameState.LOGGED_IN);
         when(client.getLocalPlayer()).thenReturn(mock(Player.class));
         when(client.getBoostedSkillLevel(Skill.PRAYER)).thenReturn(21);
+        when(config.enableLowPrayer()).thenReturn(true);
         when(config.overheadDisplayTime()).thenReturn(3);
         when(config.lowPrayerDuration()).thenReturn(0);
         plugin.startUp();
@@ -372,5 +373,85 @@ public class PluginBehaviorTest
         state.setGameState(GameState.LOGIN_SCREEN);
         plugin.onGameStateChanged(state);
         assertTrue(store.snapshot().isEmpty());
+    }
+    @Test
+    public void divineExpiryDoesNotAlsoShowNormalBoostAndFreshDoseClearsIt()
+    {
+        when(config.enableDivinePot()).thenReturn(true);
+        when(config.meleeBoostEnabled()).thenReturn(true);
+        when(client.getRealSkillLevel(Skill.STRENGTH)).thenReturn(90);
+        when(client.getBoostedSkillLevel(Skill.STRENGTH)).thenReturn(105);
+        when(client.getSkillExperience(Skill.STRENGTH)).thenReturn(1000);
+        when(client.getLocalPlayer().getInteracting()).thenReturn(mock(net.runelite.api.NPC.class));
+        net.runelite.api.ItemContainer inventory = mock(net.runelite.api.ItemContainer.class);
+        when(inventory.getItems()).thenReturn(new net.runelite.api.Item[] {
+            new net.runelite.api.Item(net.runelite.api.gameval.ItemID.STRENGTH4, 1)});
+        when(client.getItemContainer(net.runelite.api.gameval.InventoryID.INV)).thenReturn(inventory);
+        int timer = net.runelite.api.gameval.VarbitID.DIVINECOMBAT_POTION_TIME;
+        when(client.getVarbitValue(timer)).thenReturn(1);
+        plugin.onGameTick(new GameTick());
+        when(client.getVarbitValue(timer)).thenReturn(0);
+        when(client.getBoostedSkillLevel(Skill.STRENGTH)).thenReturn(90);
+        plugin.onStatChanged(new StatChanged(Skill.STRENGTH, 1010, 90, 90));
+        chat("The effects of your divine potion have worn off.");
+        chat("The effects of your divine potion have worn off.");
+        plugin.onGameTick(new GameTick());
+        assertEquals(1, store.snapshot().size());
+        assertEquals("Divine Pot", store.snapshot().get(0).key);
+        // Combat on subsequent ticks must not bring back a second warning.
+        plugin.onStatChanged(new StatChanged(Skill.STRENGTH, 1020, 90, 90));
+        plugin.onGameTick(new GameTick());
+        assertEquals(1, store.snapshot().size());
+        when(client.getVarbitValue(timer)).thenReturn(500);
+        when(client.getBoostedSkillLevel(Skill.STRENGTH)).thenReturn(105);
+        plugin.onGameTick(new GameTick());
+        assertTrue(store.snapshot().isEmpty());
+    }
+
+    @Test
+    public void everyDivineDoseClearsOnlyDivineEvenWithoutAStatIncrease()
+    {
+        when(config.enableDivinePot()).thenReturn(true);
+        when(config.enableThrall()).thenReturn(true);
+        int[] timers = {
+            net.runelite.api.gameval.VarbitID.DIVINEATTACK_POTION_TIME,
+            net.runelite.api.gameval.VarbitID.DIVINESTRENGTH_POTION_TIME,
+            net.runelite.api.gameval.VarbitID.DIVINEDEFENCE_POTION_TIME,
+            net.runelite.api.gameval.VarbitID.DIVINECOMBAT_POTION_TIME,
+            net.runelite.api.gameval.VarbitID.DIVINEMAGIC_POTION_TIME,
+            net.runelite.api.gameval.VarbitID.DIVINEBATTLEMAGE_POTION_TIME,
+            net.runelite.api.gameval.VarbitID.DIVINERANGE_POTION_TIME,
+            net.runelite.api.gameval.VarbitID.DIVINEBASTION_POTION_TIME
+        };
+        chat("Your thrall returns to the grave.");
+        for (int timer : timers)
+        {
+            when(client.getVarbitValue(timer)).thenReturn(100);
+            plugin.onGameTick(new GameTick());
+            chat("The effects of your divine potion have worn off.");
+            assertEquals(2, store.snapshot().size());
+            // Refresh an already active timer: the skill level can stay the same.
+            when(client.getVarbitValue(timer)).thenReturn(500);
+            plugin.onGameTick(new GameTick());
+            assertEquals(1, store.snapshot().size());
+            assertEquals("Thrall", store.snapshot().get(0).key);
+            when(client.getVarbitValue(timer)).thenReturn(0);
+            plugin.onGameTick(new GameTick());
+        }
+    }
+    @Test
+    public void sharedAntifireReminderAcceptsNormalAndSuperExpiryButNotAdvanceWarnings()
+    {
+        when(config.enableAntifire()).thenReturn(true);
+        chat("Your antifire potion is about to expire.");
+        chat("Your super antifire potion is about to expire.");
+        assertTrue(store.snapshot().isEmpty());
+        // Regular, mix and extended doses use the ordinary antifire expiry;
+        // super and extended super doses use the super antifire expiry.
+        chat("@mes_hl_blu@Your antifire potion has expired.</col>");
+        chat("@mes_hl_blu@Your super antifire potion has expired.</col>");
+        assertEquals(1, store.snapshot().size());
+        assertEquals("AntiFire", store.snapshot().get(0).key);
+        assertEquals("Drink Antifire", store.snapshot().get(0).message);
     }
 }

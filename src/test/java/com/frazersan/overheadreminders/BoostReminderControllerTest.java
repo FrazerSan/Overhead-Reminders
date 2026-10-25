@@ -432,4 +432,45 @@ public class BoostReminderControllerTest
         reminders.onGameTick();
         assertTrue(store.snapshot().isEmpty());
     }
+    @Test
+    public void divineEpisodeSuppressesEachMatchingStyleUntilNormalBoostIsReapplied()
+    {
+        when(config.enableDivinePot()).thenReturn(true);
+        when(config.meleeBoostEnabled()).thenReturn(true);
+        when(config.magicBoostEnabled()).thenReturn(true);
+        when(config.rangedBoostEnabled()).thenReturn(true);
+        items(ItemID.STRENGTH4, ItemID._4DOSE1MAGIC, ItemID._4DOSERANGERSPOTION);
+        int[] timers = {VarbitID.DIVINESTRENGTH_POTION_TIME,
+            VarbitID.DIVINEMAGIC_POTION_TIME, VarbitID.DIVINERANGE_POTION_TIME};
+        for (int timer : timers) when(client.getVarbitValue(timer)).thenReturn(1);
+        reminders.onGameTick();
+        for (int timer : timers) when(client.getVarbitValue(timer)).thenReturn(0);
+        activity(Skill.STRENGTH);
+        reminders.onGameTick();
+        activity(Skill.STRENGTH);
+        reminders.onGameTick();
+        assertTrue(store.snapshot().isEmpty());
+        bonus(Skill.STRENGTH, 10);
+        bonus(Skill.MAGIC, 4);
+        bonus(Skill.RANGED, 10);
+        reminders.onGameTick();
+        bonus(Skill.STRENGTH, 0);
+        bonus(Skill.MAGIC, 0);
+        bonus(Skill.RANGED, 0);
+        reminders.onGameTick();
+        assertEquals(3, store.snapshot().size());
+    }
+
+    @Test
+    public void divineExpiryStillAllowsThresholdAlertWhenDivineReminderIsDisabled()
+    {
+        when(config.magicBoostEnabled()).thenReturn(true);
+        items(ItemID._4DOSE1MAGIC);
+        when(client.getVarbitValue(VarbitID.DIVINEMAGIC_POTION_TIME)).thenReturn(1);
+        reminders.onGameTick();
+        when(client.getVarbitValue(VarbitID.DIVINEMAGIC_POTION_TIME)).thenReturn(0);
+        activity(Skill.MAGIC);
+        reminders.onGameTick();
+        assertOnly("Magic Boost");
+    }
 }
