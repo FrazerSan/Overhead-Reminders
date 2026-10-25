@@ -2,7 +2,7 @@
 
 RuneLite reminders for low prayer and expiring boosts, stacked above your character so simultaneous warnings remain visible.
 
-<img width="457" height="616" alt="image" src="https://github.com/user-attachments/assets/d5cadb28-0d21-4fec-8bfa-e463cc999a39" />
+<img width="318" height="561" alt="image" src="https://github.com/user-attachments/assets/1d7a2244-0443-47cc-90fc-c8eed2f6d24a" />
 
 
 ## Features
@@ -19,24 +19,25 @@ Reminder sections start collapsed. RuneLite remembers opened/closed sections whi
 
 **Overhead Display Time** is the shared display duration (default 15 seconds, maximum 300 seconds). Every reminder has a **Use global timer** toggle, enabled by default. Turn it off to use that reminder's own display time. **0** always means no timeout, whether chosen globally or individually. Existing custom duration choices are retained on upgrade.
 
-<img width="221" height="122" alt="image" src="https://github.com/user-attachments/assets/6bca1e5e-aca7-4311-882f-85b4f58ce44f" />
+<img width="238" height="285" alt="image" src="https://github.com/user-attachments/assets/35f54b07-1990-4ec0-88b3-1e112fe58a65" />
 
 
 Low Prayer uses a threshold when enabled. It warns once when prayer reaches or falls below the threshold, including login with low prayer. Prayer must rise above the threshold before another warning can occur.
 
-<img width="225" height="188" alt="image" src="https://github.com/user-attachments/assets/06d4b352-c467-4779-85b7-1c67626fe4b3" />
+<img width="239" height="220" alt="image" src="https://github.com/user-attachments/assets/5a23ecf6-76d2-4f51-badf-fc6fc16f0d1d" />
 
-**Warn before expiry** is available for timed potion/heart effects and spells: 0 warns at expiry, or choose 1-20 seconds ahead. Stat-based boost and pie reminders continue to use their level thresholds. An early warning uses the same text, colour and display duration as its expiry reminder, and is not repeated at expiry. Reapplying the effect clears and rearms it. Surge and Death Charge warnings can precede the end of their cooldowns.
-
-**Show remaining seconds** displays the time until a message disappears, not the effect's remaining duration. Permanent messages have no countdown. **Height above player**, **Horizontal offset**, **Text size** and **Message spacing** control placement. Defaults retain the original appearance: height 40, centred horizontally, original font size (0), and 2 pixels of extra spacing. The RuneScape bold font is unchanged.
 
 Use **Quick actions** at the top of the plugin settings for Show preview, Stop preview, Enable all, Disable all, or Open tools sidebar. The **Overhead Reminders tools** sidebar also has reset buttons, **Enable all reminders** / **Disable all reminders**, and **Use global timer for all** / **Use individual timers for all**. Bulk enabling and disabling keeps your text, thresholds, colours and timers. Switching all timer toggles keeps the saved custom durations. Bulk changes and resets reopen the settings view so its checkboxes and values immediately reflect the saved settings. Reset timers restores 15 seconds, global toggles on, early warnings off, and countdown off. Reset messages restores wording while keeping colours.
+
+<img width="237" height="322" alt="image" src="https://github.com/user-attachments/assets/8c767143-6c0a-40ab-b2cc-041877476330" />
+
 
 **Show six-message preview** displays Low Prayer, Divine, Soulflame Horn, Thrall, Surge and Overload together, using your current text and colours even if those reminders are disabled. Change position, size or spacing in Configuration while the samples stay visible, then click **Stop preview**. Real reminders continue to be tracked separately. Preview also stops on logout or disabling the plugin.
 
 **Show out-of-supplies** Enabled by default, it checks potion, heart and salts supplies automatically. A due reminder with no suitable supply shows **Out of [item name]**, using the last suitable item seen (without its dose count), or a reminder-name fallback. It keeps the same colour and original timeout. Obtaining supplies restores the normal prompt without adding a row or restarting the timer. Turn this switch off to keep normal reminder text regardless of inventory. Low Prayer, spells, pie tracking and the active Soulflame Horn message are unaffected.
 
-A blank message suppresses that reminder. `{0}` inserts the reminder name. Messages use plain text and their configured colour. Settings are separate from the original plugins and are not imported automatically.
+<img width="379" height="303" alt="image" src="https://github.com/user-attachments/assets/a797ad78-2068-4a8c-9c39-47e29eb638bf" />
+
 
 
 ## Installation
