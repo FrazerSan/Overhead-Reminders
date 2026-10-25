@@ -34,8 +34,8 @@ public class ConfigDefaultsMigrationTest
         values.put("summerPieMessage", "AGILITY BOOST LOW!");
         ConfigDefaultsMigration.apply(manager(values));
         assertEquals("15", values.get("overheadDisplayTime"));
-        assertEquals("15", values.get("lowPrayerDuration"));
-        assertEquals("15", values.get("meleeBoostTimeout"));
+        assertEquals("0", values.get("lowPrayerDuration"));
+        assertEquals("0", values.get("meleeBoostTimeout"));
         assertEquals("Low Prayer", values.get("lowPrayerMessage"));
         assertEquals("Drink Range Boost", values.get("rangedBoostMessage"));
         assertEquals("Agility Boost", values.get("summerPieMessage"));
@@ -109,5 +109,23 @@ public class ConfigDefaultsMigrationTest
         assertEquals("Drink Divine", config.divinePotMessage());
         assertEquals("Cast Thrall", config.thrallMessage());
         assertEquals("Invigorate Saturated Heart", config.saturatedHeartMessage());
+    }
+    @Test
+    public void hornActiveDefaultUpdatesOnceAndZeroDurationsArePreserved()
+    {
+        Map<String, String> values = new HashMap<>();
+        values.put("soulflameHornMessage", "Blow Soulflame Horn");
+        values.put("overheadDisplayTime", "0");
+        values.put("lowPrayerDuration", "0");
+        values.put("meleeBoostTimeout", "0");
+        ConfigManager manager = manager(values);
+        ConfigDefaultsMigration.apply(manager);
+        assertEquals("Soulflame Horn Active", values.get("soulflameHornMessage"));
+        assertEquals("0", values.get("overheadDisplayTime"));
+        assertEquals("0", values.get("lowPrayerDuration"));
+        assertEquals("0", values.get("meleeBoostTimeout"));
+        values.put("soulflameHornMessage", "Blow Soulflame Horn");
+        ConfigDefaultsMigration.apply(manager);
+        assertEquals("Blow Soulflame Horn", values.get("soulflameHornMessage"));
     }
 }

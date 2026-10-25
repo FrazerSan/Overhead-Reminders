@@ -8,6 +8,7 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
 import net.runelite.api.gameval.VarbitID;
+import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
@@ -83,7 +84,6 @@ public class OverheadNotificationsPlugin extends Plugin
         VarbitID.DIVINEMAGIC_POTION_TIME, VarbitID.DIVINEBATTLEMAGE_POTION_TIME,
         VarbitID.DIVINERANGE_POTION_TIME, VarbitID.DIVINEBASTION_POTION_TIME
     };
-    private final int[] previousDivineTimers = new int[DIVINE_TIMERS.length];
 
     private final LowPrayerState lowPrayer = new LowPrayerState();
     private DeathChargeTimer timer = null;
@@ -95,28 +95,27 @@ public class OverheadNotificationsPlugin extends Plugin
         log.info("Overhead Reminders started!");
         timer = new DeathChargeTimer();
         notifications.clear();
-        java.util.Arrays.fill(previousDivineTimers, 0);
         boostReminders.reset();
         lowPrayer.reset();
         overlayManager.add(overlay);
 
         triggerRules = List.of(
-                new TriggerRule("Overload", MSG_OVERLOAD_WORN_OFF, config::enableOverload, config::overloadMessage, config::overloadColor, 0),
-                new TriggerRule("Smelling Salt", MSG_SMELLING_SALT_WORN_OFF, config::enableSmellingSalt, config::smellingSaltMessage, config::smellingSaltColor, 0),
-                new TriggerRule("Divine Pot", MSG_DIVINE_POTION_WORN_OFF, config::enableDivinePot, config::divinePotMessage, config::divinePotColor, 0),
-                new TriggerRule("Prayer Regen", MSG_PRAYER_REGEN, config::enablePrayerRegen, config::prayerRegenMessage, config::prayerRegenColor, 0),
-                new TriggerRule("Prayer Enhance", MSG_PRAYER_ENHANCE_WORN_OFF, config::enablePrayerEnhance, config::prayerEnhanceMessage, config::prayerEnhanceColor, 0),
-                new TriggerRule("Thrall", MSG_THRALL_RETURNS, config::enableThrall, config::thrallMessage, config::thrallColor, 0),
-                new TriggerRule("Mark of Darkness", MSG_MARK_OF_DARKNESS_FADED, config::enableMarkOfDarkness, config::markOfDarknessMessage, config::markOfDarknessColor, 0),
-                new TriggerRule("Ward of Arceuus", MSG_WARD_OF_ARCEUUS_EXPIRED, config::enableWardOfArceuus, config::WardOfArceuusMessage, config::WardOfArceuusColor, 0),
-                new TriggerRule("Saturated Heart", MSG_SATURATED_HEART_WORN_OFF, config::enableSaturatedHeart, config::saturatedHeartMessage, config::saturatedHeartColor, 0),
-                new TriggerRule("Stamina", MSG_STAMINA_EXPIRED, config::enableStamina, config::staminaMessage, config::staminaColor, 0),
-                new TriggerRule("Venom", MSG_VENOM_EXPIRED, config::enableVenom, config::venomMessage, config::venomColor, 0),
-                new TriggerRule("AntiFire", MSG_ANTIFIRE_EXPIRED, config::enableAntifire, config::antifireMessage, config::antifireColor, 0),
-                new TriggerRule("AntiPoison", MSG_ANTIPOISON_EXPIRED, config::enableAntiPoison, config::antipoisonMessage, config::antipoisonColor, 0),
-                new TriggerRule("Soulflamehorn", MSG_SOULFLAMEHORN_1, config::enableSoulflameHorn, config::soulflameHornMessage, config::soulflameHornColor, 0),
-                new TriggerRule("Soulflamehorn", MSG_SOULFLAMEHORN_2, config::enableSoulflameHorn, config::soulflameHornMessage, config::soulflameHornColor, 0),
-                new TriggerRule("Surge", MSG_SURGE_POTION_READY, config::enableSurgePotion, config::surgePotionMessage, config::surgePotionColor, 0)
+                new TriggerRule("Overload", MSG_OVERLOAD_WORN_OFF, config::enableOverload, config::overloadMessage, config::overloadColor, -1),
+                new TriggerRule("Smelling Salt", MSG_SMELLING_SALT_WORN_OFF, config::enableSmellingSalt, config::smellingSaltMessage, config::smellingSaltColor, -1),
+                new TriggerRule("Divine Pot", MSG_DIVINE_POTION_WORN_OFF, config::enableDivinePot, config::divinePotMessage, config::divinePotColor, -1),
+                new TriggerRule("Prayer Regen", MSG_PRAYER_REGEN, config::enablePrayerRegen, config::prayerRegenMessage, config::prayerRegenColor, -1),
+                new TriggerRule("Prayer Enhance", MSG_PRAYER_ENHANCE_WORN_OFF, config::enablePrayerEnhance, config::prayerEnhanceMessage, config::prayerEnhanceColor, -1),
+                new TriggerRule("Thrall", MSG_THRALL_RETURNS, config::enableThrall, config::thrallMessage, config::thrallColor, -1),
+                new TriggerRule("Mark of Darkness", MSG_MARK_OF_DARKNESS_FADED, config::enableMarkOfDarkness, config::markOfDarknessMessage, config::markOfDarknessColor, -1),
+                new TriggerRule("Ward of Arceuus", MSG_WARD_OF_ARCEUUS_EXPIRED, config::enableWardOfArceuus, config::WardOfArceuusMessage, config::WardOfArceuusColor, -1),
+                new TriggerRule("Saturated Heart", MSG_SATURATED_HEART_WORN_OFF, config::enableSaturatedHeart, config::saturatedHeartMessage, config::saturatedHeartColor, -1),
+                new TriggerRule("Stamina", MSG_STAMINA_EXPIRED, config::enableStamina, config::staminaMessage, config::staminaColor, -1),
+                new TriggerRule("Venom", MSG_VENOM_EXPIRED, config::enableVenom, config::venomMessage, config::venomColor, -1),
+                new TriggerRule("AntiFire", MSG_ANTIFIRE_EXPIRED, config::enableAntifire, config::antifireMessage, config::antifireColor, -1),
+                new TriggerRule("AntiPoison", MSG_ANTIPOISON_EXPIRED, config::enableAntiPoison, config::antipoisonMessage, config::antipoisonColor, -1),
+                new TriggerRule("Soulflamehorn", MSG_SOULFLAMEHORN_1, config::enableSoulflameHorn, config::soulflameHornMessage, config::soulflameHornColor, -1),
+                new TriggerRule("Soulflamehorn", MSG_SOULFLAMEHORN_2, config::enableSoulflameHorn, config::soulflameHornMessage, config::soulflameHornColor, -1),
+                new TriggerRule("Surge", MSG_SURGE_POTION_READY, config::enableSurgePotion, config::surgePotionMessage, config::surgePotionColor, -1)
         );
         ConfigDefaultsMigration.apply(configManager);
     }
@@ -190,22 +189,13 @@ public class OverheadNotificationsPlugin extends Plugin
         {
             return;
         }
-        for (int i = 0; i < DIVINE_TIMERS.length; i++)
-        {
-            int remaining = client.getVarbitValue(DIVINE_TIMERS[i]);
-            if (remaining > previousDivineTimers[i])
-            {
-                // A fresh dose also counts when the stat itself does not rise.
-                notifications.remove("Divine Pot");
-            }
-            previousDivineTimers[i] = remaining;
-        }
+        clearReappliedEffects();
         boostReminders.onGameTick();
         if (timer.getState() == DeathChargeTimerState.EXPIRED)
         {
             if (config.enableDeathCharge())
             {
-                triggerAlert("Death Charge", config.deathchargeMessage(), config.deathchargeColor(), 0);
+                triggerAlert("Death Charge", config.deathchargeMessage(), config.deathchargeColor(), -1);
             }
             timer.stop();
         }
@@ -281,7 +271,6 @@ public class OverheadNotificationsPlugin extends Plugin
     private void resetSession()
     {
         notifications.clear();
-        java.util.Arrays.fill(previousDivineTimers, 0);
         boostReminders.reset();
         lowPrayer.reset();
         if (timer != null)
@@ -290,9 +279,47 @@ public class OverheadNotificationsPlugin extends Plugin
         }
     }
 
+    private void clearReappliedEffects()
+    {
+        clearWhileActive("Divine Pot", DIVINE_TIMERS);
+        clearWhileActive("AntiFire", VarbitID.ANTIFIRE_POTION, VarbitID.SUPER_ANTIFIRE_POTION);
+        clearWhileActive("Saturated Heart", VarbitID.SATURATED_HEART_TIME);
+        clearWhileActive("Stamina", VarbitID.STAMINA_ACTIVE);
+        clearWhileActive("Prayer Regen", VarbitID.PRAYER_REGENERATION_POTION_TIMER);
+        clearWhileActive("Prayer Enhance", VarbitID.RAIDS_PRAYERENHANCE_TIMER);
+        clearWhileActive("Overload", VarbitID.NZONE_OVERLOAD_POTION_EFFECTS,
+            VarbitID.RAIDS_OVERLOAD_TIMER, VarbitID.DEADMAN_OVERLOAD_POTION_EFFECTS);
+        clearWhileActive("Smelling Salt", VarbitID.TOA_MIDRAIDLOOT_STATS_TIMER);
+        clearWhileActive("Surge", VarbitID.SURGE_POTION_TIMER);
+
+        // The poison varp is negative during immunity; stronger antivenom immunity
+        // occupies values below -38. A cure without immunity must not clear an alert.
+        int poison = client.getVarpValue(VarPlayerID.POISON);
+        if (poison < 0)
+        {
+            notifications.remove("AntiPoison");
+        }
+        if (poison < -38)
+        {
+            notifications.remove("Venom");
+        }
+    }
+
+    private void clearWhileActive(String key, int... varbits)
+    {
+        for (int varbit : varbits)
+        {
+            if (client.getVarbitValue(varbit) > 0)
+            {
+                notifications.remove(key);
+                return;
+            }
+        }
+    }
+
     private void triggerAlert(String triggerKey, String message, java.awt.Color color, int duration)
     {
-        notifications.show(triggerKey, message, color, duration > 0 ? duration : config.overheadDisplayTime());
+        notifications.show(triggerKey, message, color, duration >= 0 ? duration : config.overheadDisplayTime());
     }
     @Provides
     OverheadNotificationsConfig provideConfig(ConfigManager configManager)

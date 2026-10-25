@@ -473,4 +473,38 @@ public class BoostReminderControllerTest
         reminders.onGameTick();
         assertOnly("Magic Boost");
     }
+    @Test
+    public void everyCustomBoostTimeoutCanStayUntilItsOwnBoostIsReapplied()
+    {
+        when(config.meleeBoostEnabled()).thenReturn(true);
+        when(config.magicBoostEnabled()).thenReturn(true);
+        when(config.rangedBoostEnabled()).thenReturn(true);
+        when(config.wildPieEnabled()).thenReturn(true);
+        when(config.summerPieEnabled()).thenReturn(true);
+        when(config.meleeBoostTimeout()).thenReturn(0);
+        when(config.magicBoostTimeout()).thenReturn(0);
+        when(config.rangedBoostTimeout()).thenReturn(0);
+        when(config.wildPieTimeout()).thenReturn(0);
+        when(config.summerPieTimeout()).thenReturn(0);
+        items(ItemID.STRENGTH4, ItemID._4DOSE1MAGIC, ItemID._4DOSERANGERSPOTION,
+            ItemID.WILD_PIE, ItemID.SUMMER_PIE);
+        bonus(Skill.SLAYER, 5);
+        bonus(Skill.AGILITY, 5);
+        reminders.onGameTick();
+        bonus(Skill.SLAYER, 0);
+        bonus(Skill.AGILITY, 0);
+        activity(Skill.STRENGTH);
+        reminders.onGameTick();
+        assertEquals(5, store.snapshot().size());
+        clock.set(3_600_000_000_000L);
+        reminders.onGameTick();
+        assertEquals(5, store.snapshot().size());
+        Skill[] skills = {Skill.STRENGTH, Skill.MAGIC, Skill.RANGED, Skill.SLAYER, Skill.AGILITY};
+        for (int i = 0; i < skills.length; i++)
+        {
+            bonus(skills[i], 5);
+            reminders.onGameTick();
+            assertEquals(4 - i, store.snapshot().size());
+        }
+    }
 }

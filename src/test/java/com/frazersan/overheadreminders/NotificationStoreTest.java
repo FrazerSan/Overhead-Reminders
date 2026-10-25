@@ -65,4 +65,32 @@ public class NotificationStoreTest
         assertEquals("Low prayer (1s)", entry.displayText(2_999_999_999L, true));
         assertEquals(Color.WHITE, entry.color);
     }
+    @Test
+    public void zeroIsPermanentWithoutCountdownAndStillSupportsTargetedRemoval()
+    {
+        AtomicLong clock = new AtomicLong();
+        NotificationStore store = new NotificationStore(clock::get);
+        store.show("AntiFire", "Drink Antifire", Color.RED, 0);
+        store.show("Thrall", "Cast Thrall", Color.CYAN, 300);
+        clock.set(3_600_000_000_000L);
+        assertEquals(1, store.snapshot().size());
+        assertEquals("Drink Antifire", store.snapshot().get(0).displayText(clock.get(), true));
+        store.show("AntiFire", "duplicate", Color.BLUE, 5);
+        assertEquals("Drink Antifire", store.snapshot().get(0).message);
+        store.remove("AntiFire");
+        assertTrue(store.snapshot().isEmpty());
+    }
+
+    @Test
+    public void fiveMinuteDurationIsAllowedAndLargerDurationsAreCapped()
+    {
+        AtomicLong clock = new AtomicLong();
+        NotificationStore store = new NotificationStore(clock::get);
+        store.show("Prayer", "low", Color.RED, 300);
+        store.show("Horn", "active", Color.BLUE, 999);
+        clock.set(299_999_999_999L);
+        assertEquals(2, store.snapshot().size());
+        clock.set(300_000_000_000L);
+        assertTrue(store.snapshot().isEmpty());
+    }
 }

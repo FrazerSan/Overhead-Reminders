@@ -231,7 +231,7 @@ final class BoostReminderController
         {
             int timeout = rule.timeout.getAsInt();
             notifications.show(rule.type.key, rule.message.get(), rule.color.get(),
-                timeout > 0 ? timeout : config.overheadDisplayTime());
+                timeout);
             rule.notified = true;
         }
     }

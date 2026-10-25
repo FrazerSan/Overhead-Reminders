@@ -49,7 +49,7 @@ public class PluginBehaviorTest
         when(client.getBoostedSkillLevel(Skill.PRAYER)).thenReturn(21);
         when(config.enableLowPrayer()).thenReturn(true);
         when(config.overheadDisplayTime()).thenReturn(3);
-        when(config.lowPrayerDuration()).thenReturn(0);
+        when(config.lowPrayerDuration()).thenReturn(3);
         plugin.startUp();
     }
 
@@ -69,7 +69,7 @@ public class PluginBehaviorTest
     }
 
     @Test
-    public void prayerUsesGlobalDurationWithoutRefreshingOnSubsequentTicks()
+    public void prayerUsesConfiguredDurationWithoutRefreshingOnSubsequentTicks()
     {
         when(client.getBoostedSkillLevel(Skill.PRAYER)).thenReturn(20);
         plugin.onGameTick(new GameTick());
@@ -154,7 +154,7 @@ public class PluginBehaviorTest
         verify(overlays).remove(overlay);
         assertTrue(store.snapshot().isEmpty());
         when(config.overheadDisplayTime()).thenReturn(3);
-        when(config.lowPrayerDuration()).thenReturn(0);
+        when(config.lowPrayerDuration()).thenReturn(3);
         plugin.startUp();
         plugin.onGameTick(new GameTick());
         assertEquals(1, store.snapshot().size());
@@ -453,5 +453,93 @@ public class PluginBehaviorTest
         assertEquals(1, store.snapshot().size());
         assertEquals("AntiFire", store.snapshot().get(0).key);
         assertEquals("Drink Antifire", store.snapshot().get(0).message);
+    }
+    @Test
+    public void eachTimedEffectClearsOnlyItsOwnPermanentReminderWhenReapplied()
+    {
+        Object[][] effects = {
+            {"AntiFire", net.runelite.api.gameval.VarbitID.ANTIFIRE_POTION},
+            {"AntiFire", net.runelite.api.gameval.VarbitID.SUPER_ANTIFIRE_POTION},
+            {"Saturated Heart", net.runelite.api.gameval.VarbitID.SATURATED_HEART_TIME},
+            {"Stamina", net.runelite.api.gameval.VarbitID.STAMINA_ACTIVE},
+            {"Prayer Regen", net.runelite.api.gameval.VarbitID.PRAYER_REGENERATION_POTION_TIMER},
+            {"Prayer Enhance", net.runelite.api.gameval.VarbitID.RAIDS_PRAYERENHANCE_TIMER},
+            {"Overload", net.runelite.api.gameval.VarbitID.NZONE_OVERLOAD_POTION_EFFECTS},
+            {"Overload", net.runelite.api.gameval.VarbitID.RAIDS_OVERLOAD_TIMER},
+            {"Overload", net.runelite.api.gameval.VarbitID.DEADMAN_OVERLOAD_POTION_EFFECTS},
+            {"Smelling Salt", net.runelite.api.gameval.VarbitID.TOA_MIDRAIDLOOT_STATS_TIMER},
+            {"Surge", net.runelite.api.gameval.VarbitID.SURGE_POTION_TIMER}
+        };
+        for (Object[] effect : effects)
+        {
+            String key = (String) effect[0];
+            int varbit = (Integer) effect[1];
+            store.clear();
+            store.show(key, "Reapply", java.awt.Color.RED, 0);
+            store.show("Thrall", "Cast Thrall", java.awt.Color.CYAN, 0);
+            plugin.onGameTick(new GameTick());
+            assertEquals(key + " must survive without a successful reapplication", 2, store.snapshot().size());
+            when(client.getVarbitValue(varbit)).thenReturn(100);
+            plugin.onGameTick(new GameTick());
+            assertEquals(key, 1, store.snapshot().size());
+            assertEquals("Thrall", store.snapshot().get(0).key);
+            // Continued activity never reintroduces an expired message.
+            plugin.onGameTick(new GameTick());
+            assertEquals(1, store.snapshot().size());
+            when(client.getVarbitValue(varbit)).thenReturn(0);
+        }
+    }
+
+    @Test
+    public void poisonAndVenomWarningsRequireTheirOwnRenewedImmunity()
+    {
+        store.show("AntiPoison", "Drink Antipoison", java.awt.Color.GREEN, 0);
+        store.show("Venom", "Drink Anti-venom", java.awt.Color.GREEN, 0);
+        when(client.getVarpValue(net.runelite.api.gameval.VarPlayerID.POISON)).thenReturn(0);
+        plugin.onGameTick(new GameTick());
+        assertEquals(2, store.snapshot().size());
+        when(client.getVarpValue(net.runelite.api.gameval.VarPlayerID.POISON)).thenReturn(-10);
+        plugin.onGameTick(new GameTick());
+        assertEquals(1, store.snapshot().size());
+        assertEquals("Venom", store.snapshot().get(0).key);
+        when(client.getVarpValue(net.runelite.api.gameval.VarPlayerID.POISON)).thenReturn(-38);
+        plugin.onGameTick(new GameTick());
+        assertEquals(1, store.snapshot().size());
+        when(client.getVarpValue(net.runelite.api.gameval.VarPlayerID.POISON)).thenReturn(-40);
+        plugin.onGameTick(new GameTick());
+        assertTrue(store.snapshot().isEmpty());
+    }
+
+    @Test
+    public void zeroGlobalAndPrayerDurationStayUntilRecastOrRestoration()
+    {
+        when(config.overheadDisplayTime()).thenReturn(0);
+        when(config.lowPrayerDuration()).thenReturn(0);
+        when(config.enableThrall()).thenReturn(true);
+        when(client.getBoostedSkillLevel(Skill.PRAYER)).thenReturn(5);
+        plugin.onGameTick(new GameTick());
+        chat("Your thrall returns to the grave.");
+        clock.set(3_600_000_000_000L);
+        plugin.onGameTick(new GameTick());
+        assertEquals(2, store.snapshot().size());
+        chat("You resurrect a greater ghostly thrall.");
+        assertEquals(1, store.snapshot().size());
+        when(client.getBoostedSkillLevel(Skill.PRAYER)).thenReturn(21);
+        plugin.onGameTick(new GameTick());
+        assertTrue(store.snapshot().isEmpty());
+    }
+
+    @Test
+    public void prayerZeroDoesNotInheritFiniteGlobalDuration()
+    {
+        when(config.lowPrayerDuration()).thenReturn(0);
+        when(config.enableThrall()).thenReturn(true);
+        when(client.getBoostedSkillLevel(Skill.PRAYER)).thenReturn(5);
+        plugin.onGameTick(new GameTick());
+        chat("Your thrall returns to the grave.");
+        clock.set(300_000_000_000L);
+        plugin.onGameTick(new GameTick());
+        assertEquals(1, store.snapshot().size());
+        assertEquals("Low Prayer", store.snapshot().get(0).key);
     }
 }

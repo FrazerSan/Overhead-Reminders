@@ -8,8 +8,8 @@ public interface OverheadNotificationsConfig extends Config
 {
     String reminderDivider = "<html><hr width='190' size='1' color='#505050'></html>";
 
-    @Range(min = 1, max = 120)
-    @ConfigItem(keyName = "overheadDisplayTime", name = "Overhead Display Time", description = "Time to display overhead text (in seconds)", position = -3)
+    @Range(min = 0, max = 300)
+    @ConfigItem(keyName = "overheadDisplayTime", name = "Overhead Display Time", description = "Time to display overhead text, in seconds (0-300). 0 stays until cleared", position = -3)
     default int overheadDisplayTime() { return 15; }
 
     @ConfigItem(keyName = "showCountdown", name = "Show remaining seconds", description = "Append remaining display time to each message", position = -2)
@@ -32,8 +32,8 @@ public interface OverheadNotificationsConfig extends Config
     @ConfigItem(keyName = "prayerThreshold", name = "Threshold: Low Prayer", description = "Warn when prayer is at or below this value", section = prayerSection, position = 4)
     default int prayerThreshold() { return 20; }
 
-    @Range(min = 0, max = 120)
-    @ConfigItem(keyName = "lowPrayerDuration", name = "Display Time: Low Prayer", description = "Duration in seconds. 0 uses Overhead Display Time, like other reminders", section = prayerSection, position = 6)
+    @Range(min = 0, max = 300)
+    @ConfigItem(keyName = "lowPrayerDuration", name = "Display Time: Low Prayer", description = "Duration in seconds (0-300). 0 stays until cleared", section = prayerSection, position = 6)
     default int lowPrayerDuration() { return 15; }
 
     @ConfigItem(keyName = "lowPrayerColor", name = "Low Prayer: Colour", description = "Low prayer text color", section = prayerSection, position = 8)
@@ -104,8 +104,8 @@ public interface OverheadNotificationsConfig extends Config
     @ConfigItem(keyName = "meleeBoostThreshold", name = "Threshold: Melee Boost", description = "Warn at this many levels above your normal level or lower; 0 means no boost remains", section = boostsSection, position = 18)
     default int meleeBoostThreshold() { return 0; }
 
-    @Range(min = 0, max = 120)
-    @ConfigItem(keyName = "meleeBoostTimeout", name = "Display Time: Melee Boost", description = "Duration in seconds. 0 uses Overhead Display Time. Does not repeat until boosted again", section = boostsSection, position = 20)
+    @Range(min = 0, max = 300)
+    @ConfigItem(keyName = "meleeBoostTimeout", name = "Display Time: Melee Boost", description = "Duration in seconds (0-300). 0 stays until cleared. Does not repeat until boosted again", section = boostsSection, position = 20)
     default int meleeBoostTimeout() { return 15; }
 
     @ConfigItem(keyName = "meleeBoostColor", name = "Melee Boost: Colour", description = "Reminder colour for Melee Boost", section = boostsSection, position = 22)
@@ -125,8 +125,8 @@ public interface OverheadNotificationsConfig extends Config
     @ConfigItem(keyName = "rangedBoostThreshold", name = "Threshold: Range Boost", description = "Warn at this many levels above your normal level or lower; 0 means no boost remains", section = boostsSection, position = 29)
     default int rangedBoostThreshold() { return 0; }
 
-    @Range(min = 0, max = 120)
-    @ConfigItem(keyName = "rangedBoostTimeout", name = "Display Time: Range Boost", description = "Duration in seconds. 0 uses Overhead Display Time. Does not repeat until boosted again", section = boostsSection, position = 31)
+    @Range(min = 0, max = 300)
+    @ConfigItem(keyName = "rangedBoostTimeout", name = "Display Time: Range Boost", description = "Duration in seconds (0-300). 0 stays until cleared. Does not repeat until boosted again", section = boostsSection, position = 31)
     default int rangedBoostTimeout() { return 15; }
 
     @ConfigItem(keyName = "rangedBoostColor", name = "Range Boost: Colour", description = "Reminder colour for Ranged Boost", section = boostsSection, position = 33)
@@ -146,8 +146,8 @@ public interface OverheadNotificationsConfig extends Config
     @ConfigItem(keyName = "magicBoostThreshold", name = "Threshold: Magic Boost", description = "Warn at this many levels above your normal level or lower; 0 means no boost remains", section = boostsSection, position = 40)
     default int magicBoostThreshold() { return 0; }
 
-    @Range(min = 0, max = 120)
-    @ConfigItem(keyName = "magicBoostTimeout", name = "Display Time: Magic Boost", description = "Duration in seconds. 0 uses Overhead Display Time. Does not repeat until boosted again", section = boostsSection, position = 42)
+    @Range(min = 0, max = 300)
+    @ConfigItem(keyName = "magicBoostTimeout", name = "Display Time: Magic Boost", description = "Duration in seconds (0-300). 0 stays until cleared. Does not repeat until boosted again", section = boostsSection, position = 42)
     default int magicBoostTimeout() { return 15; }
 
     @ConfigItem(keyName = "magicBoostColor", name = "Magic Boost: Colour", description = "Reminder colour for Magic Boost", section = boostsSection, position = 44)
@@ -160,7 +160,7 @@ public interface OverheadNotificationsConfig extends Config
     default boolean enableSoulflameHorn() { return false; }
 
     @ConfigItem(keyName = "soulflameHornMessage", name = "Soulflame Horn: Message", description = "Message for Soulflame Horn", section = otherBoostsSection, position = 2)
-    default String soulflameHornMessage() { return "Blow Soulflame Horn"; }
+    default String soulflameHornMessage() { return "Soulflame Horn Active"; }
 
     @ConfigItem(keyName = "soulflameHornColor", name = "Soulflame Horn: Colour", description = "Text color for Soulflame Horn", section = otherBoostsSection, position = 4)
     default Color soulflameHornColor() { return Color.RED; }
@@ -179,8 +179,8 @@ public interface OverheadNotificationsConfig extends Config
     @ConfigItem(keyName = "wildPieThreshold", name = "Threshold: Wild Pie", description = "Warn at this many levels above your normal level or lower; 0 means no boost remains", section = otherBoostsSection, position = 11)
     default int wildPieThreshold() { return 0; }
 
-    @Range(min = 0, max = 120)
-    @ConfigItem(keyName = "wildPieTimeout", name = "Display Time: Wild Pie", description = "Duration in seconds. 0 uses Overhead Display Time. Does not repeat until boosted again", section = otherBoostsSection, position = 13)
+    @Range(min = 0, max = 300)
+    @ConfigItem(keyName = "wildPieTimeout", name = "Display Time: Wild Pie", description = "Duration in seconds (0-300). 0 stays until cleared. Does not repeat until boosted again", section = otherBoostsSection, position = 13)
     default int wildPieTimeout() { return 15; }
 
     @ConfigItem(keyName = "wildPieColor", name = "Wild Pie: Colour", description = "Reminder colour for Wild Pie", section = otherBoostsSection, position = 15)
@@ -200,8 +200,8 @@ public interface OverheadNotificationsConfig extends Config
     @ConfigItem(keyName = "summerPieThreshold", name = "Threshold: Summer Pie", description = "Warn at this many levels above your normal level or lower; 0 means no boost remains", section = otherBoostsSection, position = 22)
     default int summerPieThreshold() { return 0; }
 
-    @Range(min = 0, max = 120)
-    @ConfigItem(keyName = "summerPieTimeout", name = "Display Time: Summer Pie", description = "Duration in seconds. 0 uses Overhead Display Time. Does not repeat until boosted again", section = otherBoostsSection, position = 24)
+    @Range(min = 0, max = 300)
+    @ConfigItem(keyName = "summerPieTimeout", name = "Display Time: Summer Pie", description = "Duration in seconds (0-300). 0 stays until cleared. Does not repeat until boosted again", section = otherBoostsSection, position = 24)
     default int summerPieTimeout() { return 15; }
 
     @ConfigItem(keyName = "summerPieColor", name = "Summer Pie: Colour", description = "Reminder colour for Summer Pie", section = otherBoostsSection, position = 26)

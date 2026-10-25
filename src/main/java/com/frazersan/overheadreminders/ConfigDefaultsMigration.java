@@ -13,6 +13,15 @@ final class ConfigDefaultsMigration
     static void apply(ConfigManager manager)
     {
         applyOldDefaults(manager);
+        if (!"1".equals(manager.getConfiguration(GROUP, "hornActiveDefaultsRevision")))
+        {
+            String horn = manager.getConfiguration(GROUP, "soulflameHornMessage");
+            if ("Blow Soulflame Horn".equals(horn) || "Soulflame Horn Active!".equals(horn))
+            {
+                manager.setConfiguration(GROUP, "soulflameHornMessage", "Soulflame Horn Active");
+            }
+            manager.setConfiguration(GROUP, "hornActiveDefaultsRevision", "1");
+        }
         if ("1".equals(manager.getConfiguration(GROUP, "actionDefaultsRevision")))
         {
             return;
@@ -30,7 +39,6 @@ final class ConfigDefaultsMigration
             {"deathChargeMessage", "Death Charge Ready!", "Cast Death Charge"},
             {"markOfDarknessMessage", "Mark of Darkness expired!", "Cast Mark of Darkness"},
             {"WardOfArceuusMessage", "Ward of Arceuus expired!", "Cast Ward of Arceuus"},
-            {"soulflameHornMessage", "Soulflame Horn Active!", "Blow Soulflame Horn"},
             {"surgePotionMessage", "Surge Potion Ready!", "Drink Surge"},
             {"staminaMessage", "Stamina potion Expired!", "Drink Stamina"},
             {"antiPoisonMessage", "AntiPoison Expired!", "Drink Antipoison"},
@@ -55,17 +63,12 @@ final class ConfigDefaultsMigration
         }
         Map<String, String[]> replacements = new LinkedHashMap<>();
         replacements.put("overheadDisplayTime", new String[] {"3", "15"});
-        replacements.put("lowPrayerDuration", new String[] {"0", "15"});
         replacements.put("lowPrayerMessage", new String[] {"LOW PRAYER!", "Low Prayer"});
         replacements.put("meleeBoostMessage", new String[] {"MELEE BOOST LOW!", "Melee Boost"});
         replacements.put("magicBoostMessage", new String[] {"MAGIC BOOST LOW!", "Magic Boost"});
         replacements.put("rangedBoostMessage", new String[] {"RANGED BOOST LOW!", "Range Boost"});
         replacements.put("wildPieMessage", new String[] {"SLAYER BOOST LOW!", "Slayer Boost"});
         replacements.put("summerPieMessage", new String[] {"AGILITY BOOST LOW!", "Agility Boost"});
-        for (String prefix : new String[] {"meleeBoost", "magicBoost", "rangedBoost", "wildPie", "summerPie"})
-        {
-            replacements.put(prefix + "Timeout", new String[] {"0", "15"});
-        }
         for (Map.Entry<String, String[]> entry : replacements.entrySet())
         {
             String[] values = entry.getValue();

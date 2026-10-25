@@ -13,6 +13,8 @@ import javax.inject.Singleton;
 @Singleton
 public class NotificationStore
 {
+    private static final long NO_EXPIRY = Long.MAX_VALUE;
+
     static final class Entry
     {
         final String key;
@@ -30,7 +32,7 @@ public class NotificationStore
 
         String displayText(long now, boolean countdown)
         {
-            return countdown ? message + " (" + Math.max(1, (expiresAt - now + 999_999_999L) / 1_000_000_000L) + "s)" : message;
+            return countdown && expiresAt != NO_EXPIRY ? message + " (" + Math.max(1, (expiresAt - now + 999_999_999L) / 1_000_000_000L) + "s)" : message;
         }
     }
 
@@ -63,7 +65,7 @@ public class NotificationStore
             if (!message.isEmpty())
             {
                 entries.put(key, new Entry(key, message, color == null ? Color.WHITE : color,
-                    clock.getAsLong() + Math.max(1, Math.min(120, seconds)) * 1_000_000_000L));
+                    seconds == 0 ? NO_EXPIRY : clock.getAsLong() + Math.max(1, Math.min(300, seconds)) * 1_000_000_000L));
             }
         }
     }
@@ -92,6 +94,6 @@ public class NotificationStore
     private void prune()
     {
         long now = clock.getAsLong();
-        entries.values().removeIf(entry -> now >= entry.expiresAt);
+        entries.values().removeIf(entry -> entry.expiresAt != NO_EXPIRY && now >= entry.expiresAt);
     }
 }
