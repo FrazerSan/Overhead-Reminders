@@ -93,4 +93,14 @@ public class NotificationStoreTest
         clock.set(300_000_000_000L);
         assertTrue(store.snapshot().isEmpty());
     }
+    @Test
+    public void alternateOutOfSuppliesTextUsesSameCountdownWithoutChangingStoredPrompt()
+    {
+        NotificationStore store = new NotificationStore(() -> 0L);
+        store.show("AntiFire", "Drink Antifire", Color.RED, 15);
+        NotificationStore.Entry entry = store.snapshot().get(0);
+        assertEquals("Out of Antifire (10s)", entry.displayText(5_000_000_000L, true, "Out of Antifire"));
+        assertEquals("Drink Antifire", entry.message);
+        assertEquals(15_000_000_000L, entry.expiresAt);
+    }
 }

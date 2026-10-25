@@ -1,31 +1,16 @@
 package com.frazersan.overheadreminders;
 
-import java.awt.*;
-import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
+/** A game message mapped to one reminder type. */
+final class TriggerRule
+{
+    final ReminderType type;
+    private final String keyword;
 
-public class TriggerRule {
-    final String triggerKey;
-    final String keyword;
-    final BooleanSupplier isEnabled;
-    final Supplier<String> messageSupplier;
-    final Supplier<Color> colorSupplier;
-    final int durationOverride;
-
-    TriggerRule(String triggerKey, String keyword,
-                BooleanSupplier isEnabled,
-                Supplier<String> messageSupplier,
-                Supplier<Color> colorSupplier,
-                int durationOverride) {
-        this.triggerKey = triggerKey;
+    TriggerRule(ReminderType type, String keyword)
+    {
+        this.type = type;
         this.keyword = keyword;
-        this.isEnabled = isEnabled;
-        this.messageSupplier = messageSupplier;
-        this.colorSupplier = colorSupplier;
-        this.durationOverride = durationOverride;
     }
 
-    boolean matches(String msg) {
-        return msg.contains(keyword);
-    }
+    boolean matches(String message) { return message.contains(keyword); }
 }

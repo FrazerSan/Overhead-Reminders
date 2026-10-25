@@ -32,7 +32,12 @@ public class NotificationStore
 
         String displayText(long now, boolean countdown)
         {
-            return countdown && expiresAt != NO_EXPIRY ? message + " (" + Math.max(1, (expiresAt - now + 999_999_999L) / 1_000_000_000L) + "s)" : message;
+            return displayText(now, countdown, message);
+        }
+
+        String displayText(long now, boolean countdown, String text)
+        {
+            return countdown && expiresAt != NO_EXPIRY ? text + " (" + Math.max(1, (expiresAt - now + 999_999_999L) / 1_000_000_000L) + "s)" : text;
         }
     }
 

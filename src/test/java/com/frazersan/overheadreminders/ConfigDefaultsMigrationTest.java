@@ -103,7 +103,7 @@ public class ConfigDefaultsMigrationTest
         {
             if (method.isDefault() && method.getReturnType() == boolean.class)
             {
-                assertEquals(method.getName(), false, method.invoke(config));
+                assertEquals(method.getName(), (method.getName().endsWith("UseGlobalTimer") || method.getName().equals("showOutOfSupplies")), method.invoke(config));
             }
         }
         assertEquals("Drink Divine", config.divinePotMessage());
@@ -127,5 +127,24 @@ public class ConfigDefaultsMigrationTest
         values.put("soulflameHornMessage", "Blow Soulflame Horn");
         ConfigDefaultsMigration.apply(manager);
         assertEquals("Blow Soulflame Horn", values.get("soulflameHornMessage"));
+    }
+    @Test
+    public void upgradingPreservesCustomTimerSelectionsAndExplicitGlobalChoices()
+    {
+        Map<String, String> values = new HashMap<>();
+        values.put("lowPrayerDuration", "8");
+        values.put("meleeBoostTimeout", "0");
+        values.put("magicBoostTimeout", "15");
+        values.put("rangedBoostTimeout", "25");
+        values.put("rangedBoostUseGlobalTimer", "true");
+        ConfigManager manager = manager(values);
+        ConfigDefaultsMigration.apply(manager);
+        assertEquals("false", values.get("lowPrayerUseGlobalTimer"));
+        assertEquals("false", values.get("meleeBoostUseGlobalTimer"));
+        assertFalse(values.containsKey("magicBoostUseGlobalTimer"));
+        assertEquals("true", values.get("rangedBoostUseGlobalTimer"));
+        values.put("lowPrayerUseGlobalTimer", "true");
+        ConfigDefaultsMigration.apply(manager);
+        assertEquals("true", values.get("lowPrayerUseGlobalTimer"));
     }
 }

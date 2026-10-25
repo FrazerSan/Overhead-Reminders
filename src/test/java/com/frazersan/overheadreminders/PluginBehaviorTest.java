@@ -36,8 +36,14 @@ public class PluginBehaviorTest
         clock = new AtomicLong();
         store = new NotificationStore(clock::get);
         overlays = mock(OverlayManager.class);
-        overlay = new ReminderOverlay(client, store, config);
+        overlay = new ReminderOverlay(client, store, config, new ReminderPreview(), new InventorySupplyChecker(client), plugin);
         inject("client", client);
+        inject("settingsScroll", mock(QuickActionScroll.class));
+        inject("eventBus", mock(net.runelite.client.eventbus.EventBus.class));
+        inject("preview", new ReminderPreview());
+        inject("supplies", new InventorySupplyChecker(client));
+        inject("clientToolbar", mock(net.runelite.client.ui.ClientToolbar.class));
+        inject("clientThread", mock(net.runelite.client.callback.ClientThread.class));
         inject("config", config);
         inject("configManager", mock(net.runelite.client.config.ConfigManager.class));
         inject("notifications", store);
@@ -47,6 +53,7 @@ public class PluginBehaviorTest
         when(client.getGameState()).thenReturn(GameState.LOGGED_IN);
         when(client.getLocalPlayer()).thenReturn(mock(Player.class));
         when(client.getBoostedSkillLevel(Skill.PRAYER)).thenReturn(21);
+        when(config.lowPrayerUseGlobalTimer()).thenReturn(false);
         when(config.enableLowPrayer()).thenReturn(true);
         when(config.overheadDisplayTime()).thenReturn(3);
         when(config.lowPrayerDuration()).thenReturn(3);
@@ -457,6 +464,18 @@ public class PluginBehaviorTest
     @Test
     public void eachTimedEffectClearsOnlyItsOwnPermanentReminderWhenReapplied()
     {
+        when(config.enablePrayerRegen()).thenReturn(true);
+        when(config.enablePrayerEnhance()).thenReturn(true);
+        when(config.enableDivinePot()).thenReturn(true);
+        when(config.enableSaturatedHeart()).thenReturn(true);
+        when(config.enableStamina()).thenReturn(true);
+        when(config.enableSurgePotion()).thenReturn(true);
+        when(config.enableAntiPoison()).thenReturn(true);
+        when(config.enableVenom()).thenReturn(true);
+        when(config.enableAntifire()).thenReturn(true);
+        when(config.enableOverload()).thenReturn(true);
+        when(config.enableSmellingSalt()).thenReturn(true);
+        when(config.enableThrall()).thenReturn(true);
         Object[][] effects = {
             {"AntiFire", net.runelite.api.gameval.VarbitID.ANTIFIRE_POTION},
             {"AntiFire", net.runelite.api.gameval.VarbitID.SUPER_ANTIFIRE_POTION},
@@ -493,6 +512,8 @@ public class PluginBehaviorTest
     @Test
     public void poisonAndVenomWarningsRequireTheirOwnRenewedImmunity()
     {
+        when(config.enableAntiPoison()).thenReturn(true);
+        when(config.enableVenom()).thenReturn(true);
         store.show("AntiPoison", "Drink Antipoison", java.awt.Color.GREEN, 0);
         store.show("Venom", "Drink Anti-venom", java.awt.Color.GREEN, 0);
         when(client.getVarpValue(net.runelite.api.gameval.VarPlayerID.POISON)).thenReturn(0);
@@ -541,5 +562,107 @@ public class PluginBehaviorTest
         plugin.onGameTick(new GameTick());
         assertEquals(1, store.snapshot().size());
         assertEquals("Low Prayer", store.snapshot().get(0).key);
+    }
+    @Test
+    public void deathChargeEarlyWarningDoesNotRepeatAtReadyAndRecastClearsIt() throws Exception
+    {
+        when(config.enableDeathCharge()).thenReturn(true);
+        when(config.deathChargeEarlyWarning()).thenReturn(10);
+        when(config.overheadDisplayTime()).thenReturn(0);
+        inject("timer", new DeathChargeTimer(clock::get));
+        String cast = "Upon the death of your next foe, some of your special attack energy will be restored.";
+        chat(cast);
+        clock.set(49_000_000_000L);
+        plugin.onGameTick(new GameTick());
+        assertTrue(store.snapshot().isEmpty());
+        clock.set(50_000_000_000L);
+        plugin.onGameTick(new GameTick());
+        assertEquals("Death Charge", store.snapshot().get(0).key);
+        clock.set(60_000_000_000L);
+        plugin.onGameTick(new GameTick());
+        assertEquals(1, store.snapshot().size());
+        chat(cast);
+        assertTrue(store.snapshot().isEmpty());
+        clock.set(110_000_000_000L);
+        plugin.onGameTick(new GameTick());
+        assertEquals(1, store.snapshot().size());
+    }
+    @Test
+    public void successfulAdrenalineDoseClearsOnlyAdrenalineAndFailedAttemptDoesNotClear()
+    {
+        when(config.enableLiquidAdrenaline()).thenReturn(true);
+        when(config.enableThrall()).thenReturn(true);
+        store.show("Liquid Adrenaline", "Drink Liquid Adrenaline", java.awt.Color.YELLOW, 0);
+        chat("Your thrall returns to the grave.");
+        chat("You cannot drink this potion outside the raid.");
+        assertEquals(2, store.snapshot().size());
+        chat("You drink some of the potion, reducing the energy cost of your special attacks.</col>");
+        assertEquals(1, store.snapshot().size());
+        assertEquals("Thrall", store.snapshot().get(0).key);
+    }
+    @Test
+    public void settingsQuickActionsStartStopPreviewAndEnableDisableAll() throws Exception
+    {
+        net.runelite.client.callback.ClientThread thread = mock(net.runelite.client.callback.ClientThread.class);
+        doAnswer(call -> {
+            ((Runnable) call.getArgument(0)).run();
+            return null;
+        }).when(thread).invokeLater(any(Runnable.class));
+        inject("clientThread", thread);
+        net.runelite.client.config.ConfigManager manager = mock(net.runelite.client.config.ConfigManager.class);
+        inject("configManager", manager);
+        ReminderPreview preview = new ReminderPreview();
+        inject("preview", preview);
+        for (String action : new String[] {"SHOW_PREVIEW", "STOP_PREVIEW", "ENABLE_ALL", "DISABLE_ALL"})
+        {
+            net.runelite.client.events.ConfigChanged event = new net.runelite.client.events.ConfigChanged();
+            event.setGroup("overheadreminder");
+            event.setKey("quickAction");
+            event.setNewValue(action);
+            plugin.onConfigChanged(event);
+            if (action.equals("SHOW_PREVIEW")) assertEquals(6, preview.snapshot().size());
+            if (action.equals("STOP_PREVIEW")) assertFalse(preview.active());
+        }
+        verify(manager, times(4)).setConfiguration("overheadreminder", "quickAction", "NONE");
+        verify(manager).setConfiguration("overheadreminder", "enableLowPrayer", "true");
+        verify(manager).setConfiguration("overheadreminder", "enableLowPrayer", "false");
+        verify(manager).setConfiguration("overheadreminder", "enableLiquidAdrenaline", "true");
+        verify(manager).setConfiguration("overheadreminder", "enableLiquidAdrenaline", "false");
+    }
+
+    @Test
+    public void invalidOrIdleQuickActionDoesNotQueueWork() throws Exception
+    {
+        net.runelite.client.callback.ClientThread thread = mock(net.runelite.client.callback.ClientThread.class);
+        inject("clientThread", thread);
+        for (String value : new String[] {"NONE", "unknown", null})
+        {
+            net.runelite.client.events.ConfigChanged event = new net.runelite.client.events.ConfigChanged();
+            event.setGroup("overheadreminder");
+            event.setKey("quickAction");
+            event.setNewValue(value);
+            plugin.onConfigChanged(event);
+        }
+        verify(thread, never()).invokeLater(any(Runnable.class));
+    }
+    @Test
+    public void bulkQuickActionRequestsFreshNativeSettingsForThisPlugin() throws Exception
+    {
+        net.runelite.client.eventbus.EventBus bus = mock(net.runelite.client.eventbus.EventBus.class);
+        inject("eventBus", bus);
+        net.runelite.client.callback.ClientThread thread = mock(net.runelite.client.callback.ClientThread.class);
+        doAnswer(call -> { ((Runnable) call.getArgument(0)).run(); return null; })
+            .when(thread).invokeLater(any(Runnable.class));
+        inject("clientThread", thread);
+        net.runelite.client.events.ConfigChanged event = new net.runelite.client.events.ConfigChanged();
+        event.setGroup("overheadreminder");
+        event.setKey("quickAction");
+        event.setNewValue("DISABLE_ALL");
+        plugin.onConfigChanged(event);
+        org.mockito.ArgumentCaptor<net.runelite.client.events.OverlayMenuClicked> capture =
+            org.mockito.ArgumentCaptor.forClass(net.runelite.client.events.OverlayMenuClicked.class);
+        verify(bus).post(capture.capture());
+        assertEquals(net.runelite.api.MenuAction.RUNELITE_OVERLAY_CONFIG, capture.getValue().getEntry().getMenuAction());
+        assertSame(plugin, capture.getValue().getOverlay().getPlugin());
     }
 }

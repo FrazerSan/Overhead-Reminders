@@ -37,6 +37,12 @@ public class BoostReminderControllerTest
         player = mock(Player.class);
         inventory = mock(ItemContainer.class);
         config = mock(OverheadNotificationsConfig.class, CALLS_REAL_METHODS);
+        when(config.meleeBoostUseGlobalTimer()).thenReturn(false);
+        when(config.magicBoostUseGlobalTimer()).thenReturn(false);
+        when(config.rangedBoostUseGlobalTimer()).thenReturn(false);
+        when(config.wildPieUseGlobalTimer()).thenReturn(false);
+        when(config.summerPieUseGlobalTimer()).thenReturn(false);
+        when(config.showOutOfSupplies()).thenReturn(false);
         clock = new AtomicLong();
         store = new NotificationStore(clock::get);
         reminders = new BoostReminderController(client, config, store);
@@ -506,5 +512,37 @@ public class BoostReminderControllerTest
             reminders.onGameTick();
             assertEquals(4 - i, store.snapshot().size());
         }
+    }
+    @Test
+    public void outOfSuppliesModeKeepsTrackingFinalDoseUntilBoostFallsLow()
+    {
+        when(config.showOutOfSupplies()).thenReturn(true);
+        when(config.meleeBoostEnabled()).thenReturn(true);
+        when(config.meleeBoostTimeout()).thenReturn(0);
+        items(ItemID._1DOSE2STRENGTH);
+        reminders.onGameTick();
+        items(ItemID.VIAL_EMPTY);
+        bonus(Skill.STRENGTH, 15);
+        reminders.onGameTick();
+        assertTrue(store.snapshot().isEmpty());
+        bonus(Skill.STRENGTH, 0);
+        reminders.onGameTick();
+        assertOnly("Melee Boost");
+        // The same row persists with no supplies, rather than being removed each tick.
+        reminders.onGameTick();
+        assertOnly("Melee Boost");
+        bonus(Skill.STRENGTH, 15);
+        reminders.onGameTick();
+        assertTrue(store.snapshot().isEmpty());
+    }
+
+    @Test
+    public void outOfSuppliesDoesNotCreateCombatAlertsForNeverCarriedBoosts()
+    {
+        when(config.showOutOfSupplies()).thenReturn(true);
+        when(config.meleeBoostEnabled()).thenReturn(true);
+        activity(Skill.STRENGTH);
+        reminders.onGameTick();
+        assertTrue(store.snapshot().isEmpty());
     }
 }

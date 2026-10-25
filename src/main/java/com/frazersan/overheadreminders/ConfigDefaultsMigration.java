@@ -13,6 +13,27 @@ final class ConfigDefaultsMigration
     static void apply(ConfigManager manager)
     {
         applyOldDefaults(manager);
+        if (!"1".equals(manager.getConfiguration(GROUP, "sharedTimerDefaultsRevision")))
+        {
+            String[][] customTimers = {
+                {"lowPrayerDuration", "lowPrayerUseGlobalTimer"},
+                {"meleeBoostTimeout", "meleeBoostUseGlobalTimer"},
+                {"magicBoostTimeout", "magicBoostUseGlobalTimer"},
+                {"rangedBoostTimeout", "rangedBoostUseGlobalTimer"},
+                {"wildPieTimeout", "wildPieUseGlobalTimer"},
+                {"summerPieTimeout", "summerPieUseGlobalTimer"}
+            };
+            for (String[] custom : customTimers)
+            {
+                String duration = manager.getConfiguration(GROUP, custom[0]);
+                if (duration != null && !"15".equals(duration)
+                    && manager.getConfiguration(GROUP, custom[1]) == null)
+                {
+                    manager.setConfiguration(GROUP, custom[1], "false");
+                }
+            }
+            manager.setConfiguration(GROUP, "sharedTimerDefaultsRevision", "1");
+        }
         if (!"1".equals(manager.getConfiguration(GROUP, "hornActiveDefaultsRevision")))
         {
             String horn = manager.getConfiguration(GROUP, "soulflameHornMessage");

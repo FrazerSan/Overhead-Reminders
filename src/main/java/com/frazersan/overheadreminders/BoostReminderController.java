@@ -60,6 +60,7 @@ final class BoostReminderController
         final Supplier<Color> color;
         boolean notified;
         boolean trackingPie;
+        boolean trackingSupply;
 
         Rule(BoostReminderType type, BooleanSupplier enabled, IntSupplier threshold,
             IntSupplier timeout, Supplier<String> message, Supplier<Color> color)
@@ -93,15 +94,15 @@ final class BoostReminderController
         this.notifications = notifications;
         rules = Arrays.asList(
             new Rule(BoostReminderType.MELEE, config::meleeBoostEnabled, config::meleeBoostThreshold,
-                config::meleeBoostTimeout, config::meleeBoostMessage, config::meleeBoostColor),
+                () -> ReminderType.MELEE.duration(config), config::meleeBoostMessage, config::meleeBoostColor),
             new Rule(BoostReminderType.MAGIC, config::magicBoostEnabled, config::magicBoostThreshold,
-                config::magicBoostTimeout, config::magicBoostMessage, config::magicBoostColor),
+                () -> ReminderType.MAGIC_BOOST.duration(config), config::magicBoostMessage, config::magicBoostColor),
             new Rule(BoostReminderType.RANGED, config::rangedBoostEnabled, config::rangedBoostThreshold,
-                config::rangedBoostTimeout, config::rangedBoostMessage, config::rangedBoostColor),
+                () -> ReminderType.RANGED.duration(config), config::rangedBoostMessage, config::rangedBoostColor),
             new Rule(BoostReminderType.WILD_PIE, config::wildPieEnabled, config::wildPieThreshold,
-                config::wildPieTimeout, config::wildPieMessage, config::wildPieColor),
+                () -> ReminderType.WILD_PIE.duration(config), config::wildPieMessage, config::wildPieColor),
             new Rule(BoostReminderType.SUMMER_PIE, config::summerPieEnabled, config::summerPieThreshold,
-                config::summerPieTimeout, config::summerPieMessage, config::summerPieColor));
+                () -> ReminderType.SUMMER_PIE.duration(config), config::summerPieMessage, config::summerPieColor));
     }
 
     void onStatChanged(StatChanged event)
@@ -205,12 +206,16 @@ final class BoostReminderController
             }
             int bonus = bonuses.get(skill);
             boolean supply = available.contains(skill);
+            if (rule.type.combat && supply) rule.trackingSupply = true;
             if (!rule.type.combat && bonus > 0 && (supply || previousSupplies.contains(skill)))
             {
                 // Continue tracking after the final half-pie is eaten.
                 rule.trackingPie = true;
             }
-            boolean canRemind = rule.type.combat ? supply && !fixedBoostActive(skill) && !divineEpisodes.contains(skill) : rule.trackingPie;
+            boolean missingSupplyReminder = rule.trackingSupply && config.showOutOfSupplies();
+            boolean canRemind = rule.type.combat
+                ? (supply || missingSupplyReminder) && !fixedBoostActive(skill) && !divineEpisodes.contains(skill)
+                : rule.trackingPie;
             eligible |= canRemind;
             low |= canRemind && bonus <= rule.threshold.getAsInt();
             reapplied |= boostedAgain.contains(skill);
@@ -279,6 +284,7 @@ final class BoostReminderController
         notifications.remove(rule.type.key);
         rule.notified = false;
         rule.trackingPie = false;
+        rule.trackingSupply = false;
     }
 
     void reset()

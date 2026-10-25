@@ -7,8 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
-import net.runelite.api.gameval.VarbitID;
-import net.runelite.api.gameval.VarPlayerID;
+import net.runelite.api.MenuAction;
+import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.events.OverlayMenuClicked;
+import net.runelite.client.ui.overlay.OverlayMenuEntry;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
@@ -16,6 +18,11 @@ import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.callback.ClientThread;
+import net.runelite.client.util.ImageUtil;
+import javax.swing.SwingUtilities;
 import net.runelite.client.util.Text;
 
 import net.runelite.client.config.ConfigManager;
@@ -78,12 +85,24 @@ public class OverheadNotificationsPlugin extends Plugin
     @Inject
     private BoostReminderController boostReminders;
 
-    private static final int[] DIVINE_TIMERS = {
-        VarbitID.DIVINEATTACK_POTION_TIME, VarbitID.DIVINESTRENGTH_POTION_TIME,
-        VarbitID.DIVINEDEFENCE_POTION_TIME, VarbitID.DIVINECOMBAT_POTION_TIME,
-        VarbitID.DIVINEMAGIC_POTION_TIME, VarbitID.DIVINEBATTLEMAGE_POTION_TIME,
-        VarbitID.DIVINERANGE_POTION_TIME, VarbitID.DIVINEBASTION_POTION_TIME
-    };
+    @Inject
+    private EventBus eventBus;
+    @Inject
+    private ClientToolbar clientToolbar;
+    @Inject
+    private ClientThread clientThread;
+    @Inject
+    private QuickActionScroll settingsScroll;
+    private NavigationButton toolsButton;
+    private volatile boolean running;
+
+    @Inject
+    private ReminderPreview preview;
+    @Inject
+    private InventorySupplyChecker supplies;
+
+    private TimedReminderController timedReminders;
+    private boolean deathChargeWarned;
 
     private final LowPrayerState lowPrayer = new LowPrayerState();
     private DeathChargeTimer timer = null;
@@ -94,36 +113,57 @@ public class OverheadNotificationsPlugin extends Plugin
     {
         log.info("Overhead Reminders started!");
         timer = new DeathChargeTimer();
+        deathChargeWarned = false;
+        timedReminders = new TimedReminderController(client, config, notifications);
         notifications.clear();
+        preview.stop();
+        supplies.reset();
         boostReminders.reset();
         lowPrayer.reset();
         overlayManager.add(overlay);
 
         triggerRules = List.of(
-                new TriggerRule("Overload", MSG_OVERLOAD_WORN_OFF, config::enableOverload, config::overloadMessage, config::overloadColor, -1),
-                new TriggerRule("Smelling Salt", MSG_SMELLING_SALT_WORN_OFF, config::enableSmellingSalt, config::smellingSaltMessage, config::smellingSaltColor, -1),
-                new TriggerRule("Divine Pot", MSG_DIVINE_POTION_WORN_OFF, config::enableDivinePot, config::divinePotMessage, config::divinePotColor, -1),
-                new TriggerRule("Prayer Regen", MSG_PRAYER_REGEN, config::enablePrayerRegen, config::prayerRegenMessage, config::prayerRegenColor, -1),
-                new TriggerRule("Prayer Enhance", MSG_PRAYER_ENHANCE_WORN_OFF, config::enablePrayerEnhance, config::prayerEnhanceMessage, config::prayerEnhanceColor, -1),
-                new TriggerRule("Thrall", MSG_THRALL_RETURNS, config::enableThrall, config::thrallMessage, config::thrallColor, -1),
-                new TriggerRule("Mark of Darkness", MSG_MARK_OF_DARKNESS_FADED, config::enableMarkOfDarkness, config::markOfDarknessMessage, config::markOfDarknessColor, -1),
-                new TriggerRule("Ward of Arceuus", MSG_WARD_OF_ARCEUUS_EXPIRED, config::enableWardOfArceuus, config::WardOfArceuusMessage, config::WardOfArceuusColor, -1),
-                new TriggerRule("Saturated Heart", MSG_SATURATED_HEART_WORN_OFF, config::enableSaturatedHeart, config::saturatedHeartMessage, config::saturatedHeartColor, -1),
-                new TriggerRule("Stamina", MSG_STAMINA_EXPIRED, config::enableStamina, config::staminaMessage, config::staminaColor, -1),
-                new TriggerRule("Venom", MSG_VENOM_EXPIRED, config::enableVenom, config::venomMessage, config::venomColor, -1),
-                new TriggerRule("AntiFire", MSG_ANTIFIRE_EXPIRED, config::enableAntifire, config::antifireMessage, config::antifireColor, -1),
-                new TriggerRule("AntiPoison", MSG_ANTIPOISON_EXPIRED, config::enableAntiPoison, config::antipoisonMessage, config::antipoisonColor, -1),
-                new TriggerRule("Soulflamehorn", MSG_SOULFLAMEHORN_1, config::enableSoulflameHorn, config::soulflameHornMessage, config::soulflameHornColor, -1),
-                new TriggerRule("Soulflamehorn", MSG_SOULFLAMEHORN_2, config::enableSoulflameHorn, config::soulflameHornMessage, config::soulflameHornColor, -1),
-                new TriggerRule("Surge", MSG_SURGE_POTION_READY, config::enableSurgePotion, config::surgePotionMessage, config::surgePotionColor, -1)
+                new TriggerRule(ReminderType.OVERLOAD, MSG_OVERLOAD_WORN_OFF),
+                new TriggerRule(ReminderType.SALTS, MSG_SMELLING_SALT_WORN_OFF),
+                new TriggerRule(ReminderType.DIVINE, MSG_DIVINE_POTION_WORN_OFF),
+                new TriggerRule(ReminderType.PRAYER_REGEN, MSG_PRAYER_REGEN),
+                new TriggerRule(ReminderType.PRAYER_ENHANCE, MSG_PRAYER_ENHANCE_WORN_OFF),
+                new TriggerRule(ReminderType.THRALL, MSG_THRALL_RETURNS),
+                new TriggerRule(ReminderType.MARK, MSG_MARK_OF_DARKNESS_FADED),
+                new TriggerRule(ReminderType.WARD, MSG_WARD_OF_ARCEUUS_EXPIRED),
+                new TriggerRule(ReminderType.HEART, MSG_SATURATED_HEART_WORN_OFF),
+                new TriggerRule(ReminderType.STAMINA, MSG_STAMINA_EXPIRED),
+                new TriggerRule(ReminderType.VENOM, MSG_VENOM_EXPIRED),
+                new TriggerRule(ReminderType.ANTIFIRE, MSG_ANTIFIRE_EXPIRED),
+                new TriggerRule(ReminderType.ANTIPOISON, MSG_ANTIPOISON_EXPIRED),
+                new TriggerRule(ReminderType.HORN, MSG_SOULFLAMEHORN_1),
+                new TriggerRule(ReminderType.HORN, MSG_SOULFLAMEHORN_2),
+                new TriggerRule(ReminderType.SURGE, MSG_SURGE_POTION_READY)
         );
         ConfigDefaultsMigration.apply(configManager);
+        running = true;
+        SwingUtilities.invokeLater(() -> {
+            if (!running) return;
+            settingsScroll.start();
+            ReminderToolsPanel panel = new ReminderToolsPanel(new ReminderConfigActions(configManager, this::refreshSettings),
+                action -> clientThread.invokeLater(action), () -> preview.start(config), preview::stop);
+            toolsButton = NavigationButton.builder().tooltip("Overhead Reminders tools")
+                .icon(ImageUtil.resizeImage(ImageUtil.loadImageResource(getClass(), "tools-icon.png"), 16, 16))
+                .priority(6).panel(panel).build();
+            clientToolbar.addNavigation(toolsButton);
+        });
     }
 
     @Override
     protected void shutDown()
     {
         log.info("Overhead Reminders stopped!");
+        running = false;
+        SwingUtilities.invokeLater(() -> {
+            settingsScroll.stop();
+            if (toolsButton != null) clientToolbar.removeNavigation(toolsButton);
+            toolsButton = null;
+        });
         overlayManager.remove(overlay);
         resetSession();
         timer = null;
@@ -146,17 +186,23 @@ public class OverheadNotificationsPlugin extends Plugin
         // failed casts must leave the reminder visible.
         if (plainMessage.startsWith("You resurrect a ") && plainMessage.endsWith(" thrall."))
         {
-            notifications.remove("Thrall");
+            timedReminders.reapplied(ReminderType.THRALL);
             return;
         }
         if (plainMessage.equals("You have placed a Mark of Darkness upon yourself."))
         {
-            notifications.remove("Mark of Darkness");
+            timedReminders.reapplied(ReminderType.MARK);
             return;
         }
         if (plainMessage.equals("Your defence against Arceuus magic has been strengthened."))
         {
-            notifications.remove("Ward of Arceuus");
+            timedReminders.reapplied(ReminderType.WARD);
+            return;
+        }
+
+        if (plainMessage.equals("You drink some of the potion, reducing the energy cost of your special attacks."))
+        {
+            timedReminders.reapplied(ReminderType.ADRENALINE);
             return;
         }
 
@@ -164,19 +210,15 @@ public class OverheadNotificationsPlugin extends Plugin
         {
             notifications.remove("Death Charge");
             timer.start();
+            deathChargeWarned = false;
             return;
         }
 
         for (TriggerRule rule : triggerRules)
         {
-            if (rule.isEnabled.getAsBoolean() && rule.matches(plainMessage))
+            if (rule.type.enabled(config) && rule.matches(plainMessage))
             {
-                triggerAlert(
-                        rule.triggerKey,
-                        rule.messageSupplier.get(),
-                        rule.colorSupplier.get(),
-                        rule.durationOverride
-                );
+                timedReminders.onExpiry(rule.type);
                 return;
             }
         }
@@ -189,15 +231,18 @@ public class OverheadNotificationsPlugin extends Plugin
         {
             return;
         }
-        clearReappliedEffects();
+        if (config.showOutOfSupplies()) supplies.update();
+        timedReminders.onGameTick();
         boostReminders.onGameTick();
-        if (timer.getState() == DeathChargeTimerState.EXPIRED)
+        if (timer.getState() != DeathChargeTimerState.IDLE)
         {
-            if (config.enableDeathCharge())
+            if (config.enableDeathCharge() && !deathChargeWarned
+                && timer.remainingMillis() <= ReminderType.DEATH_CHARGE.earlySeconds(config) * 1000L)
             {
-                triggerAlert("Death Charge", config.deathchargeMessage(), config.deathchargeColor(), -1);
+                ReminderType.DEATH_CHARGE.show(config, notifications);
+                deathChargeWarned = true;
             }
-            timer.stop();
+            if (timer.getState() == DeathChargeTimerState.EXPIRED) timer.stop();
         }
         if (config.enableLowPrayer())
         {
@@ -208,7 +253,7 @@ public class OverheadNotificationsPlugin extends Plugin
             }
             if (lowPrayer.update(prayer, config.prayerThreshold()))
             {
-                triggerAlert("Low Prayer", config.lowPrayerMessage(), config.lowPrayerColor(), config.lowPrayerDuration());
+                ReminderType.LOW_PRAYER.show(config, notifications);
             }
         }
         else
@@ -248,7 +293,18 @@ public class OverheadNotificationsPlugin extends Plugin
         {
             return;
         }
-        boostReminders.reset();
+        String key = event.getKey();
+        if ("quickAction".equals(key))
+        {
+            runQuickAction(event.getNewValue());
+            return;
+        }
+        preview.refresh(config);
+        if (key.startsWith("meleeBoost") || key.startsWith("magicBoost") || key.startsWith("rangedBoost")
+            || key.startsWith("wildPie") || key.startsWith("summerPie"))
+        {
+            boostReminders.reset();
+        }
         if ("enableLowPrayer".equals(event.getKey()) || "prayerThreshold".equals(event.getKey()))
         {
             lowPrayer.reset();
@@ -256,11 +312,12 @@ public class OverheadNotificationsPlugin extends Plugin
         }
         for (TriggerRule rule : triggerRules)
         {
-            if (!rule.isEnabled.getAsBoolean())
+            if (!rule.type.enabled(config))
             {
-                notifications.remove(rule.triggerKey);
+                notifications.remove(rule.type.key);
             }
         }
+        if (!config.enableLiquidAdrenaline()) notifications.remove("Liquid Adrenaline");
         if (!config.enableDeathCharge())
         {
             timer.stop();
@@ -268,10 +325,51 @@ public class OverheadNotificationsPlugin extends Plugin
         }
     }
 
+    private void runQuickAction(String value)
+    {
+        ReminderQuickAction action;
+        try { action = ReminderQuickAction.valueOf(value == null ? "NONE" : value); }
+        catch (IllegalArgumentException ex) { return; }
+        if (action == ReminderQuickAction.NONE) return;
+        configManager.setConfiguration("overheadreminder", "quickAction", ReminderQuickAction.NONE.name());
+        clientThread.invokeLater(() -> {
+            ReminderConfigActions actions = new ReminderConfigActions(configManager, this::refreshSettings);
+            switch (action)
+            {
+                case SHOW_PREVIEW: preview.start(config); refreshSettings(); break;
+                case STOP_PREVIEW: preview.stop(); refreshSettings(); break;
+                case ENABLE_ALL: actions.enableAll(true); break;
+                case DISABLE_ALL: actions.enableAll(false); break;
+                case OPEN_TOOLS:
+                    SwingUtilities.invokeLater(() -> {
+                        if (toolsButton != null) clientToolbar.openPanel(toolsButton);
+                    });
+                    break;
+                default: break;
+            }
+        });
+    }
+
+    private void refreshSettings()
+    {
+        // RuneLite's settings form does not listen for arbitrary ConfigChanged
+        // updates. Its public Configure action creates a fresh view of saved values.
+        eventBus.post(new OverlayMenuClicked(new OverlayMenuEntry(
+            MenuAction.RUNELITE_OVERLAY_CONFIG, "Configure", "Overhead Reminders"), overlay));
+        // Configure queues the native form on Swing's event thread. Wait for that
+        // form and its layout, then target our own dropdown rather than other UI.
+        SwingUtilities.invokeLater(() -> SwingUtilities.invokeLater(() ->
+            QuickActionScroll.toTop(java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow())));
+    }
+
     private void resetSession()
     {
         notifications.clear();
+        preview.stop();
+        supplies.reset();
         boostReminders.reset();
+        timedReminders.reset();
+        deathChargeWarned = false;
         lowPrayer.reset();
         if (timer != null)
         {
@@ -279,48 +377,6 @@ public class OverheadNotificationsPlugin extends Plugin
         }
     }
 
-    private void clearReappliedEffects()
-    {
-        clearWhileActive("Divine Pot", DIVINE_TIMERS);
-        clearWhileActive("AntiFire", VarbitID.ANTIFIRE_POTION, VarbitID.SUPER_ANTIFIRE_POTION);
-        clearWhileActive("Saturated Heart", VarbitID.SATURATED_HEART_TIME);
-        clearWhileActive("Stamina", VarbitID.STAMINA_ACTIVE);
-        clearWhileActive("Prayer Regen", VarbitID.PRAYER_REGENERATION_POTION_TIMER);
-        clearWhileActive("Prayer Enhance", VarbitID.RAIDS_PRAYERENHANCE_TIMER);
-        clearWhileActive("Overload", VarbitID.NZONE_OVERLOAD_POTION_EFFECTS,
-            VarbitID.RAIDS_OVERLOAD_TIMER, VarbitID.DEADMAN_OVERLOAD_POTION_EFFECTS);
-        clearWhileActive("Smelling Salt", VarbitID.TOA_MIDRAIDLOOT_STATS_TIMER);
-        clearWhileActive("Surge", VarbitID.SURGE_POTION_TIMER);
-
-        // The poison varp is negative during immunity; stronger antivenom immunity
-        // occupies values below -38. A cure without immunity must not clear an alert.
-        int poison = client.getVarpValue(VarPlayerID.POISON);
-        if (poison < 0)
-        {
-            notifications.remove("AntiPoison");
-        }
-        if (poison < -38)
-        {
-            notifications.remove("Venom");
-        }
-    }
-
-    private void clearWhileActive(String key, int... varbits)
-    {
-        for (int varbit : varbits)
-        {
-            if (client.getVarbitValue(varbit) > 0)
-            {
-                notifications.remove(key);
-                return;
-            }
-        }
-    }
-
-    private void triggerAlert(String triggerKey, String message, java.awt.Color color, int duration)
-    {
-        notifications.show(triggerKey, message, color, duration >= 0 ? duration : config.overheadDisplayTime());
-    }
     @Provides
     OverheadNotificationsConfig provideConfig(ConfigManager configManager)
     {

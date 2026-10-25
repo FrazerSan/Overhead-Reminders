@@ -8,14 +8,16 @@ RuneLite reminders for low prayer and expiring boosts, stacked above your charac
 ## Features
 
 - Low-prayer warning with a configurable threshold, text, colour, and display duration.
-- Independent, vertically stacked messages with optional remaining display seconds.
-- Reminders for Overload, Smelling Salts, Divine potions, Melee(strength) Ranged and Magic based on threshold, Saturated Heart, Prayer Regeneration, Prayer Enhance, Thralls, Death Charge, Mark of Darkness, Ward of Arceuus, Stamina, Venom resistance, Antipoison, Antifire, Soulflame Horn, and Surge potions.
+- Independent, vertically stacked messages with optional remaining display seconds, configurable position, size, and spacing, alongside a preview quick action.
+- Reminders for Overload, Smelling Salts, Liquid Adrenaline, Divine potions, Melee(strength) Ranged and Magic based on threshold, Saturated Heart, Prayer Regeneration, Prayer Enhance, Thralls, Death Charge, Mark of Darkness, Ward of Arceuus, Stamina, Venom resistance, Antipoison, Antifire, Soulflame Horn, and Surge potions.
 - Separate enable, text, and colour settings for each reminder type.
 - Reapplying a potion or heart effect clears its reminder, including all Antifire variants. Combat and pie reminders clear when their stat is boosted again. Successful spell recasts clear their own reminder. Restoring prayer above the threshold clears Low Prayer and rearms it. Soulflame Horn announces its active effect and clears on a melee stat change.
 
 ## Settings
 
-**Overhead Display Time** controls how long messages remain visible (default 15 seconds, maximum 300 seconds). Set it to **0** to keep messages until cleared. Low Prayer and the combat/pie boost reminders have their own display times with the same 0–300 second range; 0 always means no timeout. Soulflame Horn uses the shared display time and clears when Attack, Strength, or Defence changes.
+Reminder sections start collapsed. RuneLite remembers opened/closed sections while the client is running; a full restart starts them collapsed again.
+
+**Overhead Display Time** is the shared display duration (default 15 seconds, maximum 300 seconds). Every reminder has a **Use global timer** toggle, enabled by default. Turn it off to use that reminder's own display time. **0** always means no timeout, whether chosen globally or individually. Existing custom duration choices are retained on upgrade.
 
 <img width="221" height="122" alt="image" src="https://github.com/user-attachments/assets/6bca1e5e-aca7-4311-882f-85b4f58ce44f" />
 
@@ -24,7 +26,15 @@ Low Prayer uses a threshold when enabled. It warns once when prayer reaches or f
 
 <img width="225" height="188" alt="image" src="https://github.com/user-attachments/assets/06d4b352-c467-4779-85b7-1c67626fe4b3" />
 
-**Show remaining seconds** displays the time until a message disappears; it does not predict prayer drain or buff expiry. **Height above player** adjusts placement. Messages stack upward, oldest at the bottom. Expiring messages disappear independently.
+**Warn before expiry** is available for timed potion/heart effects and spells: 0 warns at expiry, or choose 1-20 seconds ahead. Stat-based boost and pie reminders continue to use their level thresholds. An early warning uses the same text, colour and display duration as its expiry reminder, and is not repeated at expiry. Reapplying the effect clears and rearms it. Surge and Death Charge warnings can precede the end of their cooldowns.
+
+**Show remaining seconds** displays the time until a message disappears, not the effect's remaining duration. Permanent messages have no countdown. **Height above player**, **Horizontal offset**, **Text size** and **Message spacing** control placement. Defaults retain the original appearance: height 40, centred horizontally, original font size (0), and 2 pixels of extra spacing. The RuneScape bold font is unchanged.
+
+Use **Quick actions** at the top of the plugin settings for Show preview, Stop preview, Enable all, Disable all, or Open tools sidebar. The **Overhead Reminders tools** sidebar also has reset buttons, **Enable all reminders** / **Disable all reminders**, and **Use global timer for all** / **Use individual timers for all**. Bulk enabling and disabling keeps your text, thresholds, colours and timers. Switching all timer toggles keeps the saved custom durations. Bulk changes and resets reopen the settings view at the top so its checkboxes and values immediately reflect the saved settings. Reset timers restores 15 seconds, global toggles on, early warnings off, and countdown off. Reset messages restores wording while keeping colours.
+
+**Show six-message preview** displays Low Prayer, Divine, Soulflame Horn, Thrall, Surge and Overload together, using your current text and colours even if those reminders are disabled. Change position, size or spacing in Configuration while the samples stay visible, then click **Stop preview**. Real reminders continue to be tracked separately. Preview also stops on logout or disabling the plugin.
+
+**Show out-of-supplies** Enabled by default, it checks potion, heart and salts supplies automatically. A due reminder with no suitable supply shows **Out of [item name]**, using the last suitable item seen (without its dose count), or a reminder-name fallback. It keeps the same colour and original timeout. Obtaining supplies restores the normal prompt without adding a row or restarting the timer. Turn this switch off to keep normal reminder text regardless of inventory. Low Prayer, spells, pie tracking and the active Soulflame Horn message are unaffected.
 
 A blank message suppresses that reminder. `{0}` inserts the reminder name. Messages use plain text and their configured colour. Settings are separate from the original plugins and are not imported automatically.
 
@@ -55,7 +65,7 @@ On Linux or macOS, use `./gradlew build` and `./gradlew run`. Run `gradlew.bat t
 
 The development client registers the plugin directly. For Jagex Accounts, follow [RuneLite's development-client login guide](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
 
-There are 69 automated tests covering thresholds, rearming, stacking, independent expiry, duplicate suppression, successful/failed recasts with live-client message formatting, lifecycle cleanup, Death Charge timing, rendering, combat inventory checks across styles, boost thresholds, fixed-effect exclusions, pie tracking and reboost clearing. The user has also confirmed gameplay behavior, including low-prayer restoration and thrall/Ward recast clearing.
+There are 118 automated tests covering thresholds, rearming, stacking, independent expiry, duplicate suppression, successful/failed recasts with live-client message formatting, lifecycle cleanup, Death Charge timing, rendering, combat inventory checks across styles, boost thresholds, fixed-effect exclusions, pie tracking and reboost clearing. The user has also confirmed gameplay behavior, including low-prayer restoration and thrall/Ward recast clearing.
 
 On Windows, the development run task disables Java 2D interface acceleration to avoid the [known sidebar artifacting issue](https://github.com/runelite/runelite/wiki/Disable-Hardware-Acceleration). This leaves the game's GPU/117 HD plugins available.
 

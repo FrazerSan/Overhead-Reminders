@@ -56,6 +56,11 @@ public class DeathChargeTimer
             : clock.getAsLong() >= deadline ? DeathChargeTimerState.EXPIRED : DeathChargeTimerState.ACTIVE;
     }
 
+    long remainingMillis()
+    {
+        return active ? Math.max(0, (deadline - clock.getAsLong()) / 1_000_000L) : 0;
+    }
+
     public void stop()
     {
         active = false;

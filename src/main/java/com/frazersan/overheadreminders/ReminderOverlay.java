@@ -20,9 +20,27 @@ public class ReminderOverlay extends Overlay
     private final NotificationStore notifications;
     private final OverheadNotificationsConfig config;
 
-    @Inject
+    private final ReminderPreview preview;
+    private final InventorySupplyChecker supplies;
+
     ReminderOverlay(Client client, NotificationStore notifications, OverheadNotificationsConfig config)
     {
+        this(client, notifications, config, new ReminderPreview(), new InventorySupplyChecker(client));
+    }
+
+    ReminderOverlay(Client client, NotificationStore notifications, OverheadNotificationsConfig config,
+        ReminderPreview preview, InventorySupplyChecker supplies)
+    {
+        this(client, notifications, config, preview, supplies, null);
+    }
+
+    @Inject
+    ReminderOverlay(Client client, NotificationStore notifications, OverheadNotificationsConfig config,
+        ReminderPreview preview, InventorySupplyChecker supplies, OverheadNotificationsPlugin plugin)
+    {
+        super(plugin);
+        this.preview = preview;
+        this.supplies = supplies;
         this.client = client;
         this.notifications = notifications;
         this.config = config;
@@ -38,7 +56,8 @@ public class ReminderOverlay extends Overlay
         {
             return null;
         }
-        graphics.setFont(FontManager.getRunescapeBoldFont());
+        java.awt.Font font = FontManager.getRunescapeBoldFont();
+        graphics.setFont(config.textSize() == 0 ? font : font.deriveFont((float) Math.max(1, config.textSize())));
         FontMetrics metrics = graphics.getFontMetrics();
         Point anchor = player.getCanvasTextLocation(graphics, "", player.getLogicalHeight() + config.verticalOffset());
         if (anchor == null)
@@ -46,11 +65,17 @@ public class ReminderOverlay extends Overlay
             return null;
         }
         int row = 0;
-        for (NotificationStore.Entry entry : notifications.snapshot())
+        boolean showingPreview = preview.active();
+        for (NotificationStore.Entry entry : showingPreview ? preview.snapshot() : notifications.snapshot())
         {
-            String text = entry.displayText(notifications.now(), config.showCountdown());
-            Point location = new Point(anchor.getX() - metrics.stringWidth(text) / 2,
-                anchor.getY() - row++ * (metrics.getHeight() + 2));
+            String message = entry.message;
+            if (!showingPreview && config.showOutOfSupplies() && !supplies.visible(entry.key))
+            {
+                message = supplies.outOfMessage(entry.key);
+            }
+            String text = entry.displayText(notifications.now(), config.showCountdown(), message);
+            Point location = new Point(anchor.getX() + config.horizontalOffset() - metrics.stringWidth(text) / 2,
+                anchor.getY() - row++ * (metrics.getHeight() + config.messageSpacing()));
             OverlayUtil.renderTextLocation(graphics, location, text, entry.color);
         }
         return null;
