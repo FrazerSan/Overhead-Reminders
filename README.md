@@ -9,7 +9,7 @@ RuneLite reminders for low prayer and expiring boosts, stacked above your charac
 
 - Low-prayer warning with a configurable threshold, text, colour, and display duration.
 - Independent, vertically stacked messages with optional remaining display seconds.
-- Reminders for Overload, Smelling Salts, Divine potions, Saturated Heart, Prayer Regeneration, Prayer Enhance, Thralls, Death Charge, Mark of Darkness, Ward of Arceuus, Stamina, Venom resistance, Antipoison, Antifire, Soulflame Horn, and Surge potions.
+- Reminders for Overload, Smelling Salts, Divine potions, Melee(strength) Ranged and Magic based on threshold, Saturated Heart, Prayer Regeneration, Prayer Enhance, Thralls, Death Charge, Mark of Darkness, Ward of Arceuus, Stamina, Venom resistance, Antipoison, Antifire, Soulflame Horn, and Surge potions.
 - Separate enable, text, and colour settings for each reminder type.
 - Duplicate events do not add extra rows or restart an existing message timer.
 - Successful thrall, Mark of Darkness, Ward of Arceuus, and Death Charge recasts clear their own reminder. Restoring prayer above the threshold clears Low Prayer and rearms it. Other active messages remain visible.
@@ -29,21 +29,6 @@ Low Prayer defaults to enabled at threshold 20. It warns once when prayer reache
 
 A blank message suppresses that reminder. `{0}` inserts the reminder name. Messages use plain text and their configured colour. Settings are separate from the original plugins and are not imported automatically.
 
-## Combat boosts and pies (next Plugin Hub update)
-
-Settings are grouped into **Prayer**, **Boosts**, **Magic**, and **Other**. Prayer lists Low Prayer, Prayer Regen, then Prayer Enhance. Boosts lists Divine and Saturated Heart first, followed by Melee/Magic/Range Boost, then Overload and Smelling Salt. Wild Pie and Summer Pie are under Other. The new boost/pie reminders default to disabled, with separate thresholds, 15-second display times, title-case messages and colours. A display time of 0 uses the shared Overhead Display Time.
-
-Thresholds are **levels above your normal level**. For example, threshold 3 with a normal Strength level of 90 warns at 93 or lower; 0 warns when the boost has gone. Each type warns once until boosted again; continuing to fight does not restart the timeout.
-
-Combat XP or a combat-stat decrease while interacting with a target checks **all enabled boost categories supported by usable supplies in the inventory**, regardless of the current attack style. Merely carrying a potion while idle does not trigger a warning. **Melee Boost checks Strength only**: a strength potion clears it even if Attack remains unboosted and a combat potion is also carried. Magic and Range Boost check their own stats.
-
-Supported naturally decaying supplies include regular/super combat, attack and strength potions; ranging and bastion potions; magic, magic essence, battlemage, ancient and forgotten brews; Armadyl brews; relevant barbarian mixes, Nightmare Zone potions and Chambers of Xeric elder/twisted/kodai potions; and an imbued heart when ready. Divine potions, saturated heart, overloads and salts do not qualify for these new inventory reminders, and their active effects suppress the corresponding combat reminders. Existing expiry reminders remain separate.
-
-Wild Pie tracks Slayer and Summer Pie tracks Agility. Pie tracking starts after a positive boost is observed with the corresponding full or half pie carried (including the tick the last half is eaten). It then continues through expiry even if no pie remains. Pies do not require combat. An unrelated boost with no corresponding pie observed does not start a pie reminder.
-
-On first use of this update, stored values matching the previous default messages, 3-second shared duration and zero duration overrides are changed once to the new title-case messages and 15-second durations. Values that differ from the old defaults are preserved, and later edits are not migrated again.
-
-Boosting again clears only that type on the next game tick. Removing all suitable supplies also clears a combat reminder. Logout, world hopping, disabling a reminder and plugin shutdown clean up its state.
 
 ## Installation
 
