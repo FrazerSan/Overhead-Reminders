@@ -11,7 +11,6 @@ RuneLite reminders for low prayer and expiring boosts, stacked above your charac
 - Independent, vertically stacked messages with optional remaining display seconds.
 - Reminders for Overload, Smelling Salts, Divine potions, Melee(strength) Ranged and Magic based on threshold, Saturated Heart, Prayer Regeneration, Prayer Enhance, Thralls, Death Charge, Mark of Darkness, Ward of Arceuus, Stamina, Venom resistance, Antipoison, Antifire, Soulflame Horn, and Surge potions.
 - Separate enable, text, and colour settings for each reminder type.
-- Duplicate events do not add extra rows or restart an existing message timer.
 - Successful thrall, Mark of Darkness, Ward of Arceuus, and Death Charge recasts clear their own reminder. Restoring prayer above the threshold clears Low Prayer and rearms it. Other active messages remain visible.
 
 ## Settings
