@@ -91,8 +91,6 @@ public class OverheadNotificationsPlugin extends Plugin
     private ClientToolbar clientToolbar;
     @Inject
     private ClientThread clientThread;
-    @Inject
-    private QuickActionScroll settingsScroll;
     private NavigationButton toolsButton;
     private volatile boolean running;
 
@@ -144,7 +142,6 @@ public class OverheadNotificationsPlugin extends Plugin
         running = true;
         SwingUtilities.invokeLater(() -> {
             if (!running) return;
-            settingsScroll.start();
             ReminderToolsPanel panel = new ReminderToolsPanel(new ReminderConfigActions(configManager, this::refreshSettings),
                 action -> clientThread.invokeLater(action), () -> preview.start(config), preview::stop);
             toolsButton = NavigationButton.builder().tooltip("Overhead Reminders tools")
@@ -160,7 +157,6 @@ public class OverheadNotificationsPlugin extends Plugin
         log.info("Overhead Reminders stopped!");
         running = false;
         SwingUtilities.invokeLater(() -> {
-            settingsScroll.stop();
             if (toolsButton != null) clientToolbar.removeNavigation(toolsButton);
             toolsButton = null;
         });
@@ -356,10 +352,6 @@ public class OverheadNotificationsPlugin extends Plugin
         // updates. Its public Configure action creates a fresh view of saved values.
         eventBus.post(new OverlayMenuClicked(new OverlayMenuEntry(
             MenuAction.RUNELITE_OVERLAY_CONFIG, "Configure", "Overhead Reminders"), overlay));
-        // Configure queues the native form on Swing's event thread. Wait for that
-        // form and its layout, then target our own dropdown rather than other UI.
-        SwingUtilities.invokeLater(() -> SwingUtilities.invokeLater(() ->
-            QuickActionScroll.toTop(java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow())));
     }
 
     private void resetSession()

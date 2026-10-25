@@ -38,7 +38,6 @@ public class PluginBehaviorTest
         overlays = mock(OverlayManager.class);
         overlay = new ReminderOverlay(client, store, config, new ReminderPreview(), new InventorySupplyChecker(client), plugin);
         inject("client", client);
-        inject("settingsScroll", mock(QuickActionScroll.class));
         inject("eventBus", mock(net.runelite.client.eventbus.EventBus.class));
         inject("preview", new ReminderPreview());
         inject("supplies", new InventorySupplyChecker(client));
