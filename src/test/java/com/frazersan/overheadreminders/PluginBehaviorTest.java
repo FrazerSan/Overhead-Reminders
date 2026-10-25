@@ -39,12 +39,16 @@ public class PluginBehaviorTest
         overlay = new ReminderOverlay(client, store, config);
         inject("client", client);
         inject("config", config);
+        inject("configManager", mock(net.runelite.client.config.ConfigManager.class));
         inject("notifications", store);
         inject("overlayManager", overlays);
         inject("overlay", overlay);
+        inject("boostReminders", new BoostReminderController(client, config, store));
         when(client.getGameState()).thenReturn(GameState.LOGGED_IN);
         when(client.getLocalPlayer()).thenReturn(mock(Player.class));
         when(client.getBoostedSkillLevel(Skill.PRAYER)).thenReturn(21);
+        when(config.overheadDisplayTime()).thenReturn(3);
+        when(config.lowPrayerDuration()).thenReturn(0);
         plugin.startUp();
     }
 
@@ -68,7 +72,7 @@ public class PluginBehaviorTest
     {
         when(client.getBoostedSkillLevel(Skill.PRAYER)).thenReturn(20);
         plugin.onGameTick(new GameTick());
-        assertEquals("LOW PRAYER!", store.snapshot().get(0).message);
+        assertEquals("Low Prayer", store.snapshot().get(0).message);
         clock.set(3_000_000_000L);
         plugin.onGameTick(new GameTick());
         assertTrue(store.snapshot().isEmpty());
@@ -148,6 +152,8 @@ public class PluginBehaviorTest
         plugin.shutDown();
         verify(overlays).remove(overlay);
         assertTrue(store.snapshot().isEmpty());
+        when(config.overheadDisplayTime()).thenReturn(3);
+        when(config.lowPrayerDuration()).thenReturn(0);
         plugin.startUp();
         plugin.onGameTick(new GameTick());
         assertEquals(1, store.snapshot().size());
@@ -333,7 +339,38 @@ public class PluginBehaviorTest
         chat(cast);
         assertTrue(store.snapshot().isEmpty());
     }
+    @Test
+    public void combatBoostEventsStackWithExistingRemindersAndClearOnReboostAndLogout()
+    {
+        when(config.meleeBoostEnabled()).thenReturn(true);
+        when(config.enableThrall()).thenReturn(true);
+        when(client.getRealSkillLevel(Skill.ATTACK)).thenReturn(90);
+        when(client.getBoostedSkillLevel(Skill.ATTACK)).thenReturn(90);
+        when(client.getRealSkillLevel(Skill.STRENGTH)).thenReturn(90);
+        when(client.getBoostedSkillLevel(Skill.STRENGTH)).thenReturn(90);
+        when(client.getSkillExperience(Skill.STRENGTH)).thenReturn(1000);
+        when(client.getLocalPlayer().getInteracting()).thenReturn(mock(net.runelite.api.NPC.class));
+        net.runelite.api.ItemContainer inventory = mock(net.runelite.api.ItemContainer.class);
+        when(inventory.getItems()).thenReturn(new net.runelite.api.Item[] {
+            new net.runelite.api.Item(net.runelite.api.gameval.ItemID._4DOSE2STRENGTH, 1)});
+        when(client.getItemContainer(net.runelite.api.gameval.InventoryID.INV)).thenReturn(inventory);
+        plugin.onGameTick(new GameTick());
+        chat("Your thrall returns to the grave.");
+        plugin.onStatChanged(new StatChanged(Skill.STRENGTH, 1010, 90, 90));
+        plugin.onGameTick(new GameTick());
+        assertEquals(2, store.snapshot().size());
+        when(client.getBoostedSkillLevel(Skill.STRENGTH)).thenReturn(105);
+        plugin.onStatChanged(new StatChanged(Skill.STRENGTH, 1010, 90, 105));
+        plugin.onGameTick(new GameTick());
+        assertEquals(1, store.snapshot().size());
+        assertEquals("Thrall", store.snapshot().get(0).key);
+        when(client.getBoostedSkillLevel(Skill.STRENGTH)).thenReturn(90);
+        plugin.onStatChanged(new StatChanged(Skill.STRENGTH, 1020, 90, 90));
+        plugin.onGameTick(new GameTick());
+        assertEquals(2, store.snapshot().size());
+        GameStateChanged state = new GameStateChanged();
+        state.setGameState(GameState.LOGIN_SCREEN);
+        plugin.onGameStateChanged(state);
+        assertTrue(store.snapshot().isEmpty());
+    }
 }
-
-
-

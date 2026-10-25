@@ -28,7 +28,7 @@ import java.util.List;
 @Slf4j
 @PluginDescriptor(
         name = "Overhead Reminders",
-        description = "Stacked reminders for expiring boosts and low prayer",
+        description = "Stacked reminders for low prayer, expiring effects, combat boosts and pies",
         tags = {"overhead", "notification", "chat", "thrall", "overload", "boost"}
 )
 public class OverheadNotificationsPlugin extends Plugin
@@ -68,7 +68,13 @@ public class OverheadNotificationsPlugin extends Plugin
     private OverheadNotificationsConfig config;
 
     @Inject
+    private ConfigManager configManager;
+
+    @Inject
     private NotificationStore notifications;
+
+    @Inject
+    private BoostReminderController boostReminders;
 
     private final LowPrayerState lowPrayer = new LowPrayerState();
     private DeathChargeTimer timer = null;
@@ -80,6 +86,7 @@ public class OverheadNotificationsPlugin extends Plugin
         log.info("Overhead Reminders started!");
         timer = new DeathChargeTimer();
         notifications.clear();
+        boostReminders.reset();
         lowPrayer.reset();
         overlayManager.add(overlay);
 
@@ -97,10 +104,11 @@ public class OverheadNotificationsPlugin extends Plugin
                 new TriggerRule("Venom", MSG_VENOM_EXPIRED, config::enableVenom, config::venomMessage, config::venomColor, 0),
                 new TriggerRule("AntiFire", MSG_ANTIFIRE_EXPIRED, config::enableAntifire, config::antifireMessage, config::antifireColor, 0),
                 new TriggerRule("AntiPoison", MSG_ANTIPOISON_EXPIRED, config::enableAntiPoison, config::antipoisonMessage, config::antipoisonColor, 0),
-                new TriggerRule("Soulflamehorn", MSG_SOULFLAMEHORN_1, config::enableSoulflameHorn, config::soulflameHornMessage, config::soulflameHornColor, 6),
-                new TriggerRule("Soulflamehorn", MSG_SOULFLAMEHORN_2, config::enableSoulflameHorn, config::soulflameHornMessage, config::soulflameHornColor, 6),
+                new TriggerRule("Soulflamehorn", MSG_SOULFLAMEHORN_1, config::enableSoulflameHorn, config::soulflameHornMessage, config::soulflameHornColor, 0),
+                new TriggerRule("Soulflamehorn", MSG_SOULFLAMEHORN_2, config::enableSoulflameHorn, config::soulflameHornMessage, config::soulflameHornColor, 0),
                 new TriggerRule("Surge", MSG_SURGE_POTION_READY, config::enableSurgePotion, config::surgePotionMessage, config::surgePotionColor, 0)
         );
+        ConfigDefaultsMigration.apply(configManager);
     }
 
     @Override
@@ -172,6 +180,7 @@ public class OverheadNotificationsPlugin extends Plugin
         {
             return;
         }
+        boostReminders.onGameTick();
         if (timer.getState() == DeathChargeTimerState.EXPIRED)
         {
             if (config.enableDeathCharge())
@@ -202,6 +211,7 @@ public class OverheadNotificationsPlugin extends Plugin
     @Subscribe
     public void onStatChanged(StatChanged event)
     {
+        boostReminders.onStatChanged(event);
         Skill skill = event.getSkill();
         if (skill == Skill.ATTACK || skill == Skill.STRENGTH || skill == Skill.DEFENCE)
         {
@@ -228,6 +238,7 @@ public class OverheadNotificationsPlugin extends Plugin
         {
             return;
         }
+        boostReminders.reset();
         if ("enableLowPrayer".equals(event.getKey()) || "prayerThreshold".equals(event.getKey()))
         {
             lowPrayer.reset();
@@ -250,6 +261,7 @@ public class OverheadNotificationsPlugin extends Plugin
     private void resetSession()
     {
         notifications.clear();
+        boostReminders.reset();
         lowPrayer.reset();
         if (timer != null)
         {
