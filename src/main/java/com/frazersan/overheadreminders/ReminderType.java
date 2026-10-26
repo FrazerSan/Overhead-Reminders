@@ -76,7 +76,10 @@ enum ReminderType
         OverheadNotificationsConfig::markOfDarknessDuration, OverheadNotificationsConfig::markOfDarknessEarlyWarning),
     WARD("Ward of Arceuus", OverheadNotificationsConfig::enableWardOfArceuus, OverheadNotificationsConfig::WardOfArceuusMessage,
         OverheadNotificationsConfig::WardOfArceuusColor, OverheadNotificationsConfig::wardOfArceuusUseGlobalTimer,
-        OverheadNotificationsConfig::wardOfArceuusDuration, OverheadNotificationsConfig::wardOfArceuusEarlyWarning);
+        OverheadNotificationsConfig::wardOfArceuusDuration, OverheadNotificationsConfig::wardOfArceuusEarlyWarning),
+    SPECIAL_ATTACK("Special Attack", OverheadNotificationsConfig::enableSpecialAttack, OverheadNotificationsConfig::specialAttackMessage,
+        OverheadNotificationsConfig::specialAttackColor, OverheadNotificationsConfig::specialAttackUseGlobalTimer,
+        OverheadNotificationsConfig::specialAttackDuration, c -> 0);
 
     final String key;
     private final Predicate<OverheadNotificationsConfig> enabled;

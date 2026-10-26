@@ -77,6 +77,35 @@ public class PluginBehaviorTest
     }
 
     @Test
+    public void specialAttackTracksGameEnergyAndResetsAcrossSessions()
+    {
+        when(config.enableSpecialAttack()).thenReturn(true);
+        when(client.getVarpValue(net.runelite.api.gameval.VarPlayerID.SA_ENERGY)).thenReturn(1000);
+        plugin.onGameTick(new GameTick());
+        assertTrue(store.snapshot().isEmpty());
+        when(client.getVarpValue(net.runelite.api.gameval.VarPlayerID.SA_ENERGY)).thenReturn(500);
+        plugin.onGameTick(new GameTick());
+        when(client.getVarpValue(net.runelite.api.gameval.VarPlayerID.SA_ENERGY)).thenReturn(1000);
+        plugin.onGameTick(new GameTick());
+        assertEquals("Special Attack 100%", store.snapshot().get(0).message);
+        net.runelite.client.events.ConfigChanged change = new net.runelite.client.events.ConfigChanged();
+        change.setGroup("overheadreminder");
+        change.setKey("enableSpecialAttack");
+        when(config.enableSpecialAttack()).thenReturn(false);
+        plugin.onConfigChanged(change);
+        assertTrue(store.snapshot().isEmpty());
+        when(config.enableSpecialAttack()).thenReturn(true);
+        when(client.getVarpValue(net.runelite.api.gameval.VarPlayerID.SA_ENERGY)).thenReturn(500);
+        plugin.onGameTick(new GameTick());
+        GameStateChanged logout = new GameStateChanged();
+        logout.setGameState(GameState.LOGIN_SCREEN);
+        plugin.onGameStateChanged(logout);
+        when(client.getVarpValue(net.runelite.api.gameval.VarPlayerID.SA_ENERGY)).thenReturn(1000);
+        plugin.onGameTick(new GameTick());
+        assertTrue(store.snapshot().isEmpty());
+    }
+
+    @Test
     public void prayerUsesConfiguredDurationWithoutRefreshingOnSubsequentTicks()
     {
         when(client.getBoostedSkillLevel(Skill.PRAYER)).thenReturn(20);

@@ -103,6 +103,7 @@ public class OverheadNotificationsPlugin extends Plugin
     private boolean deathChargeWarned;
 
     private final LowPrayerState lowPrayer = new LowPrayerState();
+    private final SpecialAttackReminderController specialAttack = new SpecialAttackReminderController();
     private DeathChargeTimer timer = null;
     private List<TriggerRule> triggerRules;
 
@@ -118,6 +119,7 @@ public class OverheadNotificationsPlugin extends Plugin
         supplies.reset();
         boostReminders.reset();
         lowPrayer.reset();
+        specialAttack.reset(notifications);
         overlayManager.add(overlay);
 
         triggerRules = List.of(
@@ -241,6 +243,7 @@ public class OverheadNotificationsPlugin extends Plugin
         if (config.showOutOfSupplies()) supplies.update();
         timedReminders.onGameTick();
         boostReminders.onGameTick();
+        specialAttack.update(client.getVarpValue(net.runelite.api.gameval.VarPlayerID.SA_ENERGY), config, notifications);
         if (timer.getState() != DeathChargeTimerState.IDLE)
         {
             if (config.enableDeathCharge() && !deathChargeWarned
@@ -301,6 +304,10 @@ public class OverheadNotificationsPlugin extends Plugin
             return;
         }
         String key = event.getKey();
+        if (key.equals("enableSpecialAttack") || key.startsWith("specialAttack"))
+        {
+            specialAttack.reset(notifications);
+        }
         if ("showSidebarIcon".equals(key))
         {
             updateToolsSidebar();
@@ -379,6 +386,7 @@ public class OverheadNotificationsPlugin extends Plugin
         timedReminders.reset();
         deathChargeWarned = false;
         lowPrayer.reset();
+        specialAttack.reset(notifications);
         if (timer != null)
         {
             timer.stop();

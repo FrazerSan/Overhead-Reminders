@@ -100,9 +100,9 @@ public class ReminderConfigActionsTest
         values.put("meleeBoostTimeout", "45");
         values.put("overheadDisplayTime", "30");
         actions.useGlobalForAll(false);
-        assertEquals(23, values.entrySet().stream().filter(e -> e.getKey().endsWith("UseGlobalTimer") && e.getValue().equals("false")).count());
+        assertEquals(ReminderType.values().length, values.entrySet().stream().filter(e -> e.getKey().endsWith("UseGlobalTimer") && e.getValue().equals("false")).count());
         actions.useGlobalForAll(true);
-        assertEquals(23, values.entrySet().stream().filter(e -> e.getKey().endsWith("UseGlobalTimer") && e.getValue().equals("true")).count());
+        assertEquals(ReminderType.values().length, values.entrySet().stream().filter(e -> e.getKey().endsWith("UseGlobalTimer") && e.getValue().equals("true")).count());
         assertEquals("0", values.get("divinePotDuration"));
         assertEquals("45", values.get("meleeBoostTimeout"));
         assertEquals("30", values.get("overheadDisplayTime"));
@@ -155,7 +155,7 @@ public class ReminderConfigActionsTest
                     assertEquals(Boolean.toString(enabled), values.get(method.getAnnotation(ConfigItem.class).keyName()));
                 }
             }
-            assertEquals(23, count);
+            assertEquals(ReminderType.values().length, count);
         }
         assertEquals("10", values.get("prayerThreshold"));
         assertEquals("Custom prayer", values.get("lowPrayerMessage"));
@@ -171,16 +171,16 @@ public class ReminderConfigActionsTest
             .when(manager).setConfiguration(eq("overheadreminder"), anyString(), any());
         ReminderConfigActions bulk = new ReminderConfigActions(manager, () -> refreshes.incrementAndGet());
         bulk.enableAll(false);
-        assertEquals(23, values.entrySet().stream().filter(e -> (e.getKey().startsWith("enable") || e.getKey().endsWith("Enabled")) && e.getValue().equals("false")).count());
+        assertEquals(ReminderType.values().length, values.entrySet().stream().filter(e -> (e.getKey().startsWith("enable") || e.getKey().endsWith("Enabled")) && e.getValue().equals("false")).count());
         assertEquals(1, refreshes.get());
         bulk.enableAll(true);
-        assertEquals(23, values.entrySet().stream().filter(e -> (e.getKey().startsWith("enable") || e.getKey().endsWith("Enabled")) && e.getValue().equals("true")).count());
+        assertEquals(ReminderType.values().length, values.entrySet().stream().filter(e -> (e.getKey().startsWith("enable") || e.getKey().endsWith("Enabled")) && e.getValue().equals("true")).count());
         assertEquals(2, refreshes.get());
         bulk.useGlobalForAll(false);
-        assertEquals(23, values.entrySet().stream().filter(e -> e.getKey().endsWith("UseGlobalTimer") && e.getValue().equals("false")).count());
+        assertEquals(ReminderType.values().length, values.entrySet().stream().filter(e -> e.getKey().endsWith("UseGlobalTimer") && e.getValue().equals("false")).count());
         assertEquals(3, refreshes.get());
         bulk.useGlobalForAll(true);
-        assertEquals(23, values.entrySet().stream().filter(e -> e.getKey().endsWith("UseGlobalTimer") && e.getValue().equals("true")).count());
+        assertEquals(ReminderType.values().length, values.entrySet().stream().filter(e -> e.getKey().endsWith("UseGlobalTimer") && e.getValue().equals("true")).count());
         assertEquals(4, refreshes.get());
     }
 

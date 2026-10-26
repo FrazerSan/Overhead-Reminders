@@ -585,4 +585,34 @@ public interface OverheadNotificationsConfig extends Config
     @ConfigItem(keyName = "WardOfArceuusColor", name = "Ward of Arceuus: Colour", description = "Text color for Ward of Arceuus", section = magicSection, position = 26)
     default Color WardOfArceuusColor() { return Color.BLUE; }
 
+    @ConfigSection(name = "Special Attack", description = "Special attack energy reminders", position = 6, closedByDefault = true)
+    String specialAttackSection = "specialAttackSection";
+
+    @ConfigItem(keyName = "enableSpecialAttack", name = "Enable Special Attack", description = "Remind when special attack energy rises to a selected percentage. Does not alert on login", section = specialAttackSection, position = 0)
+    default boolean enableSpecialAttack() { return false; }
+
+    @ConfigItem(keyName = "specialAttackMessage", name = "Special Attack: Message", description = "{percent} becomes the percentage reached, for example Special Attack 100%", section = specialAttackSection, position = 1)
+    default String specialAttackMessage() { return "Special Attack {percent}%"; }
+
+    @ConfigItem(keyName = "specialAttack25", name = "Notify at 25%", description = "Notify when energy rises from below 25% to at least 25%", section = specialAttackSection, position = 2)
+    default boolean specialAttack25() { return false; }
+
+    @ConfigItem(keyName = "specialAttack50", name = "Notify at 50%", description = "Notify when energy rises from below 50% to at least 50%", section = specialAttackSection, position = 3)
+    default boolean specialAttack50() { return false; }
+
+    @ConfigItem(keyName = "specialAttack75", name = "Notify at 75%", description = "Notify when energy rises from below 75% to at least 75%", section = specialAttackSection, position = 4)
+    default boolean specialAttack75() { return false; }
+
+    @ConfigItem(keyName = "specialAttack100", name = "Notify at 100%", description = "Notify when the meter returns to full. If several thresholds are crossed at once, only the highest selected one is shown", section = specialAttackSection, position = 5)
+    default boolean specialAttack100() { return true; }
+
+    @ConfigItem(keyName = "specialAttackUseGlobalTimer", name = "Use global timer: Special", description = "Use Overhead Display Time. Turn off to use this reminder's own display time", section = specialAttackSection, position = 6)
+    default boolean specialAttackUseGlobalTimer() { return true; }
+
+    @Range(min = 0, max = 300)
+    @ConfigItem(keyName = "specialAttackDuration", name = "Display Time: Special", description = "Duration in seconds (0-300). 0 stays until energy is spent again", section = specialAttackSection, position = 7)
+    default int specialAttackDuration() { return 15; }
+
+    @ConfigItem(keyName = "specialAttackColor", name = "Special Attack: Colour", description = "Special attack reminder text colour", section = specialAttackSection, position = 8)
+    default Color specialAttackColor() { return Color.GREEN; }
 }

@@ -29,7 +29,8 @@ final class ReminderConfigActions
         {"thrallDuration", "thrallUseGlobalTimer", "thrallEarlyWarning"},
         {"deathChargeDuration", "deathChargeUseGlobalTimer", "deathChargeEarlyWarning"},
         {"markOfDarknessDuration", "markOfDarknessUseGlobalTimer", "markOfDarknessEarlyWarning"},
-        {"wardOfArceuusDuration", "wardOfArceuusUseGlobalTimer", "wardOfArceuusEarlyWarning"}
+        {"wardOfArceuusDuration", "wardOfArceuusUseGlobalTimer", "wardOfArceuusEarlyWarning"},
+        {"specialAttackDuration", "specialAttackUseGlobalTimer", ""}
     };
     private static final String[][] MESSAGES = {
         {"lowPrayerMessage", "Low Prayer"},
@@ -54,7 +55,8 @@ final class ReminderConfigActions
         {"thrallMessage", "Cast Thrall"},
         {"deathChargeMessage", "Cast Death Charge"},
         {"markOfDarknessMessage", "Cast Mark of Darkness"},
-        {"WardOfArceuusMessage", "Cast Ward of Arceuus"}
+        {"WardOfArceuusMessage", "Cast Ward of Arceuus"},
+        {"specialAttackMessage", "Special Attack {percent}%"}
     };
     private static final String[] ENABLED = {
         "enableLowPrayer",
@@ -79,7 +81,8 @@ final class ReminderConfigActions
         "enableThrall",
         "enableDeathCharge",
         "enableMarkOfDarkness",
-        "enableWardOfArceuus"
+        "enableWardOfArceuus",
+        "enableSpecialAttack"
     };
     private final ConfigManager manager;
     private final Runnable settingsChanged;

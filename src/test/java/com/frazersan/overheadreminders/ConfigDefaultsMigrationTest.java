@@ -103,7 +103,8 @@ public class ConfigDefaultsMigrationTest
         {
             if (method.isDefault() && method.getReturnType() == boolean.class)
             {
-                assertEquals(method.getName(), (method.getName().endsWith("UseGlobalTimer") || method.getName().equals("showOutOfSupplies")), method.invoke(config));
+                assertEquals(method.getName(), (method.getName().endsWith("UseGlobalTimer")
+                    || method.getName().equals("showOutOfSupplies") || method.getName().equals("specialAttack100")), method.invoke(config));
             }
         }
         assertEquals("Drink Divine", config.divinePotMessage());
