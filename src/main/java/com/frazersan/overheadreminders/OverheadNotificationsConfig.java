@@ -8,11 +8,14 @@ public interface OverheadNotificationsConfig extends Config
 {
     String reminderDivider = "<html><hr width='190' size='1' color='#505050'></html>";
 
-    @ConfigItem(keyName = "quickActionHeading", name = "Quick actions", description = "", position = -9)
+    @ConfigItem(keyName = "quickActionHeading", name = "Quick actions", description = "", position = -10)
     void quickActionHeading();
 
-    @ConfigItem(keyName = "quickAction", name = "", description = "Preview six messages, enable or disable all reminders, or open the sidebar tools. Runs once, then returns to Select an action", position = -8)
+    @ConfigItem(keyName = "quickAction", name = "", description = "Preview messages, enable or disable all reminders, reset appearance/timers/messages, or switch all timer toggles. Runs once, then returns to Select an action", position = -9)
     default ReminderQuickAction quickAction() { return ReminderQuickAction.NONE; }
+
+    @ConfigItem(keyName = "showSidebarIcon", name = "Show sidebar icon", description = "Show the optional tools sidebar. All tools are also available in Quick actions", position = -8)
+    default boolean showSidebarIcon() { return false; }
 
     @Range(min = 0, max = 300)
     @ConfigItem(keyName = "overheadDisplayTime", name = "Overhead Display Time", description = "Time to display overhead text, in seconds (0-300). 0 stays until cleared", position = -7)

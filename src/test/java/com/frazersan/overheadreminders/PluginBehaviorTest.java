@@ -57,6 +57,8 @@ public class PluginBehaviorTest
         when(config.overheadDisplayTime()).thenReturn(3);
         when(config.lowPrayerDuration()).thenReturn(3);
         plugin.startUp();
+        // Finish queued UI setup before individual tests change the config mock.
+        javax.swing.SwingUtilities.invokeAndWait(() -> {});
     }
 
     private void inject(String name, Object value) throws Exception
@@ -627,6 +629,66 @@ public class PluginBehaviorTest
         verify(manager).setConfiguration("overheadreminder", "enableLowPrayer", "false");
         verify(manager).setConfiguration("overheadreminder", "enableLiquidAdrenaline", "true");
         verify(manager).setConfiguration("overheadreminder", "enableLiquidAdrenaline", "false");
+    }
+
+    @Test
+    public void sidebarIsHiddenByDefaultAndCanBeToggledWithoutRestarting() throws Exception
+    {
+        net.runelite.client.ui.ClientToolbar toolbar = mock(net.runelite.client.ui.ClientToolbar.class);
+        inject("clientToolbar", toolbar);
+        javax.swing.SwingUtilities.invokeAndWait(() -> {});
+        assertFalse(config.showSidebarIcon());
+        verify(toolbar, never()).addNavigation(any());
+        net.runelite.client.events.ConfigChanged event = new net.runelite.client.events.ConfigChanged();
+        event.setGroup("overheadreminder");
+        event.setKey("showSidebarIcon");
+        when(config.showSidebarIcon()).thenReturn(true);
+        plugin.onConfigChanged(event);
+        javax.swing.SwingUtilities.invokeAndWait(() -> {});
+        org.mockito.ArgumentCaptor<net.runelite.client.ui.NavigationButton> button =
+            org.mockito.ArgumentCaptor.forClass(net.runelite.client.ui.NavigationButton.class);
+        verify(toolbar).addNavigation(button.capture());
+        plugin.onConfigChanged(event);
+        javax.swing.SwingUtilities.invokeAndWait(() -> {});
+        verify(toolbar, times(1)).addNavigation(any());
+        when(config.showSidebarIcon()).thenReturn(false);
+        plugin.onConfigChanged(event);
+        javax.swing.SwingUtilities.invokeAndWait(() -> {});
+        verify(toolbar).removeNavigation(button.getValue());
+        when(config.showSidebarIcon()).thenReturn(true);
+        plugin.onConfigChanged(event);
+        javax.swing.SwingUtilities.invokeAndWait(() -> {});
+        verify(toolbar, times(2)).addNavigation(any());
+        plugin.shutDown();
+        javax.swing.SwingUtilities.invokeAndWait(() -> {});
+        verify(toolbar, times(2)).removeNavigation(any());
+    }
+
+    @Test
+    public void resetsAndTimerModesWorkFromQuickActionsWithoutSidebar() throws Exception
+    {
+        net.runelite.client.callback.ClientThread thread = mock(net.runelite.client.callback.ClientThread.class);
+        doAnswer(call -> { ((Runnable) call.getArgument(0)).run(); return null; })
+            .when(thread).invokeLater(any(Runnable.class));
+        inject("clientThread", thread);
+        net.runelite.client.config.ConfigManager manager = mock(net.runelite.client.config.ConfigManager.class);
+        inject("configManager", manager);
+        for (String action : new String[] {"RESET_APPEARANCE", "RESET_TIMERS", "RESET_MESSAGES",
+            "USE_GLOBAL_TIMERS", "USE_INDIVIDUAL_TIMERS"})
+        {
+            net.runelite.client.events.ConfigChanged event = new net.runelite.client.events.ConfigChanged();
+            event.setGroup("overheadreminder");
+            event.setKey("quickAction");
+            event.setNewValue(action);
+            plugin.onConfigChanged(event);
+        }
+        verify(manager, times(5)).setConfiguration("overheadreminder", "quickAction", "NONE");
+        verify(manager).setConfiguration("overheadreminder", "verticalOffset", "40");
+        verify(manager).setConfiguration("overheadreminder", "overheadDisplayTime", "15");
+        verify(manager).setConfiguration("overheadreminder", "divinePotMessage", "Drink Divine");
+        verify(manager, times(2)).setConfiguration("overheadreminder", "divinePotUseGlobalTimer", "true");
+        verify(manager).setConfiguration("overheadreminder", "divinePotUseGlobalTimer", "false");
+        assertFalse(config.showSidebarIcon());
     }
 
     @Test

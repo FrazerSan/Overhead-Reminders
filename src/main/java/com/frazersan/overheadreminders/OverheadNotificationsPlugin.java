@@ -140,8 +140,19 @@ public class OverheadNotificationsPlugin extends Plugin
         );
         ConfigDefaultsMigration.apply(configManager);
         running = true;
+        updateToolsSidebar();
+    }
+
+    private void updateToolsSidebar()
+    {
         SwingUtilities.invokeLater(() -> {
-            if (!running) return;
+            if (!running || !config.showSidebarIcon())
+            {
+                if (toolsButton != null) clientToolbar.removeNavigation(toolsButton);
+                toolsButton = null;
+                return;
+            }
+            if (toolsButton != null) return;
             ReminderToolsPanel panel = new ReminderToolsPanel(new ReminderConfigActions(configManager, this::refreshSettings),
                 action -> clientThread.invokeLater(action), () -> preview.start(config), preview::stop);
             toolsButton = NavigationButton.builder().tooltip("Overhead Reminders tools")
@@ -290,6 +301,11 @@ public class OverheadNotificationsPlugin extends Plugin
             return;
         }
         String key = event.getKey();
+        if ("showSidebarIcon".equals(key))
+        {
+            updateToolsSidebar();
+            return;
+        }
         if ("quickAction".equals(key))
         {
             runQuickAction(event.getNewValue());
@@ -336,11 +352,11 @@ public class OverheadNotificationsPlugin extends Plugin
                 case STOP_PREVIEW: preview.stop(); refreshSettings(); break;
                 case ENABLE_ALL: actions.enableAll(true); break;
                 case DISABLE_ALL: actions.enableAll(false); break;
-                case OPEN_TOOLS:
-                    SwingUtilities.invokeLater(() -> {
-                        if (toolsButton != null) clientToolbar.openPanel(toolsButton);
-                    });
-                    break;
+                case RESET_APPEARANCE: actions.resetAppearance(); break;
+                case RESET_TIMERS: actions.resetTimers(); break;
+                case RESET_MESSAGES: actions.resetMessages(); break;
+                case USE_GLOBAL_TIMERS: actions.useGlobalForAll(true); break;
+                case USE_INDIVIDUAL_TIMERS: actions.useGlobalForAll(false); break;
                 default: break;
             }
         });

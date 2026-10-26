@@ -27,12 +27,13 @@ Low Prayer uses a threshold when enabled. It warns once when prayer reaches or f
 <img width="239" height="220" alt="image" src="https://github.com/user-attachments/assets/5a23ecf6-76d2-4f51-badf-fc6fc16f0d1d" />
 
 
-Use **Quick actions** at the top of the plugin settings for Show preview, Stop preview, Enable all, Disable all, or Open tools sidebar. The **Overhead Reminders tools** sidebar also has reset buttons, **Enable all reminders** / **Disable all reminders**, and **Use global timer for all** / **Use individual timers for all**. Bulk enabling and disabling keeps your text, thresholds, colours and timers. Switching all timer toggles keeps the saved custom durations. Bulk changes and resets reopen the settings view so its checkboxes and values immediately reflect the saved settings. Reset timers restores 15 seconds, global toggles on, early warnings off, and countdown off. Reset messages restores wording while keeping colours.
+Use **Quick actions** at the top of the plugin settings for Show preview, Stop preview, Enable all, Disable all, Reset appearance, Reset timers, Reset messages, **Use global timer for all**, or **Use individual timers for all**. The sidebar icon is hidden by default; turn on **Show sidebar icon** if you prefer the same tools as sidebar buttons. Bulk enabling and disabling keeps your text, thresholds, colours and timers. Switching all timer toggles keeps the saved custom durations. Bulk changes and resets reopen the settings view so its checkboxes and values immediately reflect the saved settings. Reset timers restores 15 seconds, global toggles on, early warnings off, and countdown off. Reset messages restores wording while keeping colours.
 
 <img width="237" height="322" alt="image" src="https://github.com/user-attachments/assets/8c767143-6c0a-40ab-b2cc-041877476330" />
 
 
 **Show six-message preview** displays Low Prayer, Divine, Soulflame Horn, Thrall, Surge and Overload together, using your current text and colours even if those reminders are disabled. Change position, size or spacing in Configuration while the samples stay visible, then click **Stop preview**. Real reminders continue to be tracked separately. Preview also stops on logout or disabling the plugin.
+
 
 **Show out-of-supplies** Enabled by default, it checks potion, heart and salts supplies automatically. A due reminder with no suitable supply shows **Out of [item name]**, using the last suitable item seen (without its dose count), or a reminder-name fallback. It keeps the same colour and original timeout. Obtaining supplies restores the normal prompt without adding a row or restarting the timer. Turn this switch off to keep normal reminder text regardless of inventory. Low Prayer, spells, pie tracking and the active Soulflame Horn message are unaffected.
 
@@ -53,6 +54,8 @@ If it does not appear immediately, restart RuneLite and search again. The develo
 
 Disable **Overhead Notifications** and **Prayer Overhead Text** when using this combined plugin to avoid separate duplicate warnings.
 
+
+
 ## Development and testing
 
 Requires a Java 17 JDK with JAVA_HOME configured. Plugin source targets Java 11. From the project directory:
@@ -66,12 +69,12 @@ On Linux or macOS, use `./gradlew build` and `./gradlew run`. Run `gradlew.bat t
 
 The development client registers the plugin directly. For Jagex Accounts, follow [RuneLite's development-client login guide](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
 
-There are 114 automated tests covering thresholds, rearming, stacking, independent expiry, duplicate suppression, successful/failed recasts with live-client message formatting, lifecycle cleanup, Death Charge timing, rendering, combat inventory checks across styles, boost thresholds, fixed-effect exclusions, pie tracking and reboost clearing. The user has also confirmed gameplay behavior, including low-prayer restoration and thrall/Ward recast clearing.
+There are 116 automated tests covering thresholds, rearming, stacking, independent expiry, duplicate suppression, successful/failed recasts with live-client message formatting, lifecycle cleanup, Death Charge timing, rendering, combat inventory checks across styles, boost thresholds, fixed-effect exclusions, pie tracking, reboost clearing, optional sidebar visibility and quick actions. The user has also confirmed gameplay behavior, including low-prayer restoration and thrall/Ward recast clearing.
 
 On Windows, the development run task disables Java 2D interface acceleration to avoid the [known sidebar artifacting issue](https://github.com/runelite/runelite/wiki/Disable-Hardware-Acceleration). This leaves the game's GPU/117 HD plugins available.
 
 
-The Plugin Hub uses a specific source commit. Pushing a README or code change to this repository does not update that published snapshot automatically; submit an update to `plugins/overhead-reminders` with the new commit hash. See [RuneLite's update instructions](https://github.com/runelite/plugin-hub#updating-a-plugin).
+
 
 ## Credits and licensing
 
