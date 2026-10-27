@@ -18,9 +18,11 @@ RuneLite reminders for low prayer and expiring boosts, stacked above your charac
 
 Reminder sections start collapsed. RuneLite remembers opened/closed sections while the client is running; a full restart starts them collapsed again.
 
+<img width="240" height="485" alt="image" src="https://github.com/user-attachments/assets/cd341ac4-5026-45df-9e91-3e951622d217" />
+
+
 **Overhead Display Time** is the shared display duration (default 15 seconds, maximum 300 seconds). Every reminder has a **Use global timer** toggle, enabled by default. Turn it off to use that reminder's own display time. **0** always means no timeout, whether chosen globally or individually. Existing custom duration choices are retained on upgrade.
 
-<img width="238" height="285" alt="image" src="https://github.com/user-attachments/assets/35f54b07-1990-4ec0-88b3-1e112fe58a65" />
 
 
 Low Prayer uses a threshold when enabled. It warns once when prayer reaches or falls below the threshold, including login with low prayer. Prayer must rise above the threshold before another warning can occur.
