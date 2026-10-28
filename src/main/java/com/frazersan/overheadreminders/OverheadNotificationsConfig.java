@@ -419,6 +419,29 @@ public interface OverheadNotificationsConfig extends Config
     @ConfigItem(keyName = "antifireColor", name = "Antifire: Colour", description = "Text color for Antifire", section = potionsSection, position = 26)
     default Color antifireColor() { return Color.pink; }
 
+    @ConfigItem(keyName = "dividerBeforeenableGoading", name = reminderDivider, description = "", section = potionsSection, position = 27)
+    void dividerBeforeenableGoading();
+
+    @ConfigItem(keyName = "enableGoading", name = "Enable Goading", description = "Expiry reminder for Goading potions", section = potionsSection, position = 28)
+    default boolean enableGoading() { return false; }
+
+    @ConfigItem(keyName = "goadingMessage", name = "Goading: Message", description = "Message for Goading potion", section = potionsSection, position = 29)
+    default String goadingMessage() { return "Drink Goading"; }
+
+    @ConfigItem(keyName = "goadingUseGlobalTimer", name = "Use global timer: Goading", description = "Use Overhead Display Time. Turn off to use this reminder's own display time", section = potionsSection, position = 30)
+    default boolean goadingUseGlobalTimer() { return true; }
+
+    @Range(min = 0, max = 300)
+    @ConfigItem(keyName = "goadingDuration", name = "Display Time: Goading", description = "Custom duration when Use global timer is off. 0 stays until cleared; maximum 300 seconds", section = potionsSection, position = 31)
+    default int goadingDuration() { return 15; }
+
+    @Range(min = 0, max = 20)
+    @ConfigItem(keyName = "goadingEarlyWarning", name = "Warn before expiry: Goading", description = "Seconds before the effect expires (0-20). 0 warns at expiry. Does not add a second expiry message", section = potionsSection, position = 32)
+    default int goadingEarlyWarning() { return 0; }
+
+    @ConfigItem(keyName = "goadingColor", name = "Goading: Colour", description = "Text colour for Goading potion", section = potionsSection, position = 33)
+    default Color goadingColor() { return Color.GREEN; }
+
     @ConfigSection(name = "Raid Boosts", description = "Raid Boosts reminders", position = 5, closedByDefault = true)
     String raidBoostsSection = "raidBoostsSection";
 

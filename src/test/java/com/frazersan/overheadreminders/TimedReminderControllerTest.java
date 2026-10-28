@@ -30,6 +30,83 @@ public class TimedReminderControllerTest
     }
 
     @Test
+    public void goadingExpiresOnceAndDrinkingAgainClearsAndRearms()
+    {
+        when(config.enableGoading()).thenReturn(true);
+        when(config.overheadDisplayTime()).thenReturn(0);
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(100);
+        reminders.onGameTick();
+        assertTrue(store.snapshot().isEmpty());
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(1);
+        reminders.onGameTick();
+        assertTrue(store.snapshot().isEmpty());
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(0);
+        reminders.onGameTick();
+        assertEquals("Drink Goading", store.snapshot().get(0).message);
+        clock.set(1_000_000_000_000L);
+        reminders.onGameTick();
+        assertEquals(1, store.snapshot().size());
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(100);
+        reminders.onGameTick();
+        assertTrue(store.snapshot().isEmpty());
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(1);
+        reminders.onGameTick();
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(0);
+        reminders.onGameTick();
+        assertEquals(1, store.snapshot().size());
+    }
+
+    @Test
+    public void goadingInterpolatesSixTickUnitsAndDoesNotRepeatEarlyWarningAtExpiry()
+    {
+        when(config.enableGoading()).thenReturn(true);
+        when(config.goadingEarlyWarning()).thenReturn(2);
+        when(config.goadingUseGlobalTimer()).thenReturn(false);
+        when(config.goadingDuration()).thenReturn(1);
+        when(client.getTickCount()).thenReturn(100);
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(1);
+        reminders.onGameTick();
+        when(client.getTickCount()).thenReturn(102);
+        reminders.onGameTick();
+        assertTrue(store.snapshot().isEmpty()); // 2.4 seconds remain.
+        when(client.getTickCount()).thenReturn(103);
+        reminders.onGameTick();
+        assertEquals("Goading", store.snapshot().get(0).key); // 1.8 seconds remain.
+        clock.set(1_000_000_000L);
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(0);
+        reminders.onGameTick();
+        assertTrue(store.snapshot().isEmpty());
+    }
+
+    @Test
+    public void goadingIgnoresDisabledCancelledAndResetEffectsButHandlesMissedTicks()
+    {
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(1);
+        reminders.onGameTick();
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(0);
+        reminders.onGameTick();
+        assertTrue(store.snapshot().isEmpty());
+        when(config.enableGoading()).thenReturn(true);
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(90);
+        reminders.onGameTick();
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(0);
+        reminders.onGameTick();
+        assertTrue(store.snapshot().isEmpty());
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(1);
+        reminders.onGameTick();
+        reminders.reset();
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(0);
+        reminders.onGameTick();
+        assertTrue(store.snapshot().isEmpty());
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(2);
+        reminders.onGameTick();
+        when(client.getTickCount()).thenReturn(12);
+        when(client.getVarbitValue(VarbitID.GOADING_POTION_TIMER)).thenReturn(0);
+        reminders.onGameTick();
+        assertEquals(1, store.snapshot().size());
+    }
+
+    @Test
     public void divineWarnsOnceWithinWindowWithoutRepeatingAtExpiryAndRearmsAfterDose()
     {
         when(config.enableDivinePot()).thenReturn(true);

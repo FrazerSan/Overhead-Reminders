@@ -1,6 +1,6 @@
 # Overhead Reminders
 
-RuneLite reminders for low prayer and expiring boosts, stacked above your character so simultaneous warnings remain visible.
+RuneLite reminders for low prayer and expiring boosts & potions, stacked above your character so simultaneous warnings remain visible.
 
 <img width="318" height="561" alt="image" src="https://github.com/user-attachments/assets/1d7a2244-0443-47cc-90fc-c8eed2f6d24a" />
 
@@ -10,7 +10,7 @@ RuneLite reminders for low prayer and expiring boosts, stacked above your charac
 - Low-prayer warning with a configurable threshold, text, colour, and display duration.
 - Special attack energy reminders at optional 25%, 50%, 75% and 100% milestones, with full energy selected by default.
 - Independent, vertically stacked messages with optional remaining display seconds, configurable position, size, and spacing, alongside a preview quick action.
-- Reminders for Overload, Smelling Salts, Liquid Adrenaline, Divine potions, Melee(strength) Ranged and Magic based on threshold, Saturated Heart, Prayer Regeneration, Prayer Enhance, Thralls, Death Charge, Mark of Darkness, Ward of Arceuus, Stamina, Venom resistance, Antipoison, Antifire, Soulflame Horn, and Surge potions.
+- Reminders for Overload, Smelling Salts, Liquid Adrenaline, Divine potions, Melee(strength) Ranged and Magic based on threshold, Saturated Heart, Prayer Regeneration, Prayer Enhance, Thralls, Death Charge, Mark of Darkness, Ward of Arceuus, Stamina, Venom resistance, Antipoison, Antifire, Soulflame Horn, Goading potions, and Surge potions.
 - Separate enable, text, and colour settings for each reminder type.
 - Reapplying a potion or heart effect clears its reminder, including all Antifire variants. Combat and pie reminders clear when their stat is boosted again. Successful spell recasts clear their own reminder. Restoring prayer above the threshold clears Low Prayer and rearms it. Soulflame Horn announces its active effect and clears on a melee stat change.
 
@@ -72,7 +72,7 @@ On Linux or macOS, use `./gradlew build` and `./gradlew run`. Run `gradlew.bat t
 
 The development client registers the plugin directly. For Jagex Accounts, follow [RuneLite's development-client login guide](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
 
-There are 123 automated tests covering thresholds, rearming, stacking, independent expiry, duplicate suppression, successful/failed recasts with live-client message formatting, lifecycle cleanup, Death Charge timing, rendering, combat inventory checks across styles, boost thresholds, fixed-effect exclusions, pie tracking, reboost clearing, optional sidebar visibility and quick actions. The user has also confirmed gameplay behavior, including low-prayer restoration and thrall/Ward recast clearing.
+There are 127 automated tests covering thresholds, rearming, stacking, independent expiry, duplicate suppression, successful/failed recasts with live-client message formatting, lifecycle cleanup, Death Charge timing, rendering, combat inventory checks across styles, boost thresholds, fixed-effect exclusions, pie tracking, reboost clearing, optional sidebar visibility and quick actions. The user has also confirmed gameplay behavior, including low-prayer restoration and thrall/Ward recast clearing.
 
 On Windows, the development run task disables Java 2D interface acceleration to avoid the [known sidebar artifacting issue](https://github.com/runelite/runelite/wiki/Disable-Hardware-Acceleration). This leaves the game's GPU/117 HD plugins available.
 

@@ -77,6 +77,9 @@ enum ReminderType
     WARD("Ward of Arceuus", OverheadNotificationsConfig::enableWardOfArceuus, OverheadNotificationsConfig::WardOfArceuusMessage,
         OverheadNotificationsConfig::WardOfArceuusColor, OverheadNotificationsConfig::wardOfArceuusUseGlobalTimer,
         OverheadNotificationsConfig::wardOfArceuusDuration, OverheadNotificationsConfig::wardOfArceuusEarlyWarning),
+    GOADING("Goading", OverheadNotificationsConfig::enableGoading, OverheadNotificationsConfig::goadingMessage,
+        OverheadNotificationsConfig::goadingColor, OverheadNotificationsConfig::goadingUseGlobalTimer,
+        OverheadNotificationsConfig::goadingDuration, OverheadNotificationsConfig::goadingEarlyWarning),
     SPECIAL_ATTACK("Special Attack", OverheadNotificationsConfig::enableSpecialAttack, OverheadNotificationsConfig::specialAttackMessage,
         OverheadNotificationsConfig::specialAttackColor, OverheadNotificationsConfig::specialAttackUseGlobalTimer,
         OverheadNotificationsConfig::specialAttackDuration, c -> 0);

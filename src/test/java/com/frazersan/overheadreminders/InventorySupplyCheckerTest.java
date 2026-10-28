@@ -41,6 +41,26 @@ public class InventorySupplyCheckerTest
     }
 
     @Test
+    public void goadingTracksAllDosesAndOutOfSupplies()
+    {
+        assertFalse(supplies.visible("Goading"));
+        assertEquals("Out of Goading potion", supplies.outOfMessage("Goading"));
+        for (int dose = 1; dose <= 4; dose++)
+        {
+            item("Goading potion(" + dose + ")", true);
+            supplies.update();
+            assertTrue(supplies.visible("Goading"));
+        }
+        when(inventory.getItems()).thenReturn(new Item[0]);
+        supplies.update();
+        assertFalse(supplies.visible("Goading"));
+        assertEquals("Out of Goading potion", supplies.outOfMessage("Goading"));
+        item("Goading potion(4)", false);
+        supplies.update();
+        assertFalse(supplies.visible("Goading"));
+    }
+
+    @Test
     public void potionsAndMixesOfAllDosesAndRaidTiersQualifyForMatchingReminder()
     {
         String[][] cases = {

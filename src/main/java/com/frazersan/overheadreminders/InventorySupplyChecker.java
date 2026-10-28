@@ -62,7 +62,7 @@ final class InventorySupplyChecker
         switch (type)
         {
             case DIVINE: case HEART: case STAMINA: case SURGE: case ANTIPOISON: case VENOM:
-            case ANTIFIRE: case OVERLOAD: case SALTS: case ADRENALINE: case PRAYER_REGEN: case PRAYER_ENHANCE:
+            case ANTIFIRE: case GOADING: case OVERLOAD: case SALTS: case ADRENALINE: case PRAYER_REGEN: case PRAYER_ENHANCE:
             case MELEE: case RANGED: case MAGIC_BOOST:
                 return available.contains(type);
             default:
@@ -96,6 +96,7 @@ final class InventorySupplyChecker
         if (name.startsWith("prayer enhance")) types.add(ReminderType.PRAYER_ENHANCE);
         if (name.equals("liquid adrenaline")) types.add(ReminderType.ADRENALINE);
         if (name.equals("surge potion")) types.add(ReminderType.SURGE);
+        if (name.equals("goading potion")) types.add(ReminderType.GOADING);
         if (name.contains("antifire")) types.add(ReminderType.ANTIFIRE);
         if (name.contains("overload")) types.add(ReminderType.OVERLOAD);
         if (name.contains("anti-venom"))
@@ -123,6 +124,7 @@ final class InventorySupplyChecker
                 case SALTS: name = "Smelling Salts"; break;
                 case ANTIPOISON: name = "Antipoison"; break;
                 case ANTIFIRE: name = "Antifire"; break;
+                case GOADING: name = "Goading potion"; break;
                 case VENOM: name = "Anti-venom"; break;
                 case PRAYER_REGEN: name = "Prayer regeneration potion"; break;
                 case PRAYER_ENHANCE: name = "Prayer enhance"; break;

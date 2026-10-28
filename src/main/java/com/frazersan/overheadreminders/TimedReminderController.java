@@ -70,6 +70,7 @@ final class TimedReminderController
         varbit(ReminderType.OVERLOAD, VarbitID.DEADMAN_OVERLOAD_POTION_EFFECTS, 25);
         varbit(ReminderType.SALTS, VarbitID.TOA_MIDRAIDLOOT_STATS_TIMER, 25);
         varbit(ReminderType.SURGE, VarbitID.SURGE_POTION_TIMER, 10);
+        varbit(ReminderType.GOADING, VarbitID.GOADING_POTION_TIMER, 6);
         add(ReminderType.ADRENALINE, this::adrenalineTicks, () -> 1);
         varbit(ReminderType.ANTIFIRE, VarbitID.ANTIFIRE_POTION, 30);
         varbit(ReminderType.ANTIFIRE, VarbitID.SUPER_ANTIFIRE_POTION, 20);
@@ -117,10 +118,13 @@ final class TimedReminderController
             boolean active = false;
             boolean wasActive = false;
             boolean refreshed = false;
+            boolean reachedEnd = false;
             for (Counter counter : effect.counters)
             {
                 wasActive |= counter.previous > 0;
                 int current = Math.max(0, counter.value.getAsInt());
+                reachedEnd |= current == 0 && counter.previous > 0 && (counter.previous == 1
+                    || tick - counter.changedAt >= counter.previous * counter.unitTicks.getAsInt());
                 refreshed |= current > counter.previous;
                 if (current != counter.previous) counter.changedAt = tick;
                 if (current > 0)
@@ -158,6 +162,21 @@ final class TimedReminderController
                 else
                 {
                     // Leaving the raid or losing the effect early is not a natural expiry.
+                    notifications.remove(effect.type.key);
+                    effect.warned = false;
+                }
+            }
+            if (effect.type == ReminderType.GOADING && wasActive && !active)
+            {
+                // A final decrement (or elapsed deadline after missed ticks) is natural expiry.
+                // Removing the effect earlier must not produce a fresh reminder.
+                if (reachedEnd)
+                {
+                    if (!effect.warned) effect.type.show(config, notifications);
+                    effect.warned = true;
+                }
+                else
+                {
                     notifications.remove(effect.type.key);
                     effect.warned = false;
                 }
