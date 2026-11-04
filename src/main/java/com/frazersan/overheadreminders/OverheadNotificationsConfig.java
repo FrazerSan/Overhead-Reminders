@@ -43,6 +43,32 @@ public interface OverheadNotificationsConfig extends Config
     @ConfigItem(keyName = "showOutOfSupplies", name = "Show out-of-supplies", description = "Check inventory and show Out of followed by the item name when supplies are missing. Turn off to keep normal reminder text", position = -1)
     default boolean showOutOfSupplies() { return true; }
 
+    @ConfigSection(name = "Hitpoints", description = "Low hitpoints reminder", position = -1, closedByDefault = true)
+    String hitpointsSection = "hitpointsSection";
+
+    @ConfigItem(keyName = "enableLowHitpoints", name = "Enable Low Hitpoints", description = "Warn once at or below the threshold. Heal above it to rearm", section = hitpointsSection, position = 0)
+    default boolean enableLowHitpoints() { return false; }
+
+    @ConfigItem(keyName = "lowHitpointsMessage", name = "Low Hitpoints: Message", description = "Low hitpoints reminder text", section = hitpointsSection, position = 1)
+    default String lowHitpointsMessage() { return "Low Hitpoints"; }
+
+    @Range(min = 1, max = 99)
+    @ConfigItem(keyName = "hitpointsThreshold", name = "Threshold: Hitpoints", description = "Warn at this many hitpoints or lower. Uses current hitpoints, not a percentage", section = hitpointsSection, position = 2)
+    default int hitpointsThreshold() { return 30; }
+
+    @ConfigItem(keyName = "lowHitpointsUseGlobalTimer", name = "Use global timer: Hitpoints", description = "Use Overhead Display Time. Turn off to use this reminder's own display time", section = hitpointsSection, position = 3)
+    default boolean lowHitpointsUseGlobalTimer() { return true; }
+
+    @Range(min = 0, max = 300)
+    @ConfigItem(keyName = "lowHitpointsDuration", name = "Display Time: Hitpoints", description = "Duration in seconds (0-300). 0 stays until healed above the threshold", section = hitpointsSection, position = 4)
+    default int lowHitpointsDuration() { return 15; }
+
+    @ConfigItem(keyName = "lowHitpointsColor", name = "Low Hitpoints: Colour", description = "Low hitpoints text colour", section = hitpointsSection, position = 5)
+    default Color lowHitpointsColor() { return Color.RED; }
+
+    @ConfigItem(keyName = "lowHitpointsFlash", name = "Flash Low Hitpoints", description = "Alternate the chosen colour with yellow every half second, like flashing chat text", section = hitpointsSection, position = 6)
+    default boolean lowHitpointsFlash() { return false; }
+
     @ConfigSection(name = "Prayer", description = "Prayer reminders", position = 0, closedByDefault = true)
     String prayerSection = "prayerSection";
 

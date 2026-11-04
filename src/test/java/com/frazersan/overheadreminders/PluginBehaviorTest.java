@@ -106,6 +106,81 @@ public class PluginBehaviorTest
     }
 
     @Test
+    public void lowHitpointsWarnsOnceAndHealingAboveThresholdClearsAndRearms()
+    {
+        when(config.enableLowHitpoints()).thenReturn(true);
+        when(config.overheadDisplayTime()).thenReturn(0);
+        when(config.enableThrall()).thenReturn(true);
+        chat("Your thrall returns to the grave.");
+        when(client.getBoostedSkillLevel(Skill.HITPOINTS)).thenReturn(30);
+        plugin.onGameTick(new GameTick());
+        assertEquals(2, store.snapshot().size());
+        assertEquals(java.awt.Color.RED, store.snapshot().get(1).color);
+        when(client.getBoostedSkillLevel(Skill.HITPOINTS)).thenReturn(10);
+        plugin.onGameTick(new GameTick());
+        assertEquals(2, store.snapshot().size());
+        when(client.getBoostedSkillLevel(Skill.HITPOINTS)).thenReturn(30);
+        plugin.onGameTick(new GameTick());
+        assertEquals(2, store.snapshot().size());
+        when(client.getBoostedSkillLevel(Skill.HITPOINTS)).thenReturn(31);
+        plugin.onGameTick(new GameTick());
+        assertEquals(1, store.snapshot().size());
+        assertEquals("Thrall", store.snapshot().get(0).key);
+        when(client.getBoostedSkillLevel(Skill.HITPOINTS)).thenReturn(30);
+        plugin.onGameTick(new GameTick());
+        assertEquals("Low Hitpoints", store.snapshot().get(1).message);
+    }
+
+    @Test
+    public void lowHitpointsRespectsOwnTimeoutWithoutRepeatedWarningsAndIgnoresDeath()
+    {
+        when(config.enableLowHitpoints()).thenReturn(true);
+        when(config.lowHitpointsUseGlobalTimer()).thenReturn(false);
+        when(config.lowHitpointsDuration()).thenReturn(2);
+        when(config.lowHitpointsMessage()).thenReturn("Eat food");
+        when(client.getBoostedSkillLevel(Skill.HITPOINTS)).thenReturn(5);
+        plugin.onGameTick(new GameTick());
+        assertEquals("Eat food", store.snapshot().get(0).message);
+        clock.set(2_000_000_000L);
+        plugin.onGameTick(new GameTick());
+        assertTrue(store.snapshot().isEmpty());
+        when(client.getBoostedSkillLevel(Skill.HITPOINTS)).thenReturn(0);
+        plugin.onGameTick(new GameTick());
+        assertTrue(store.snapshot().isEmpty());
+    }
+
+    @Test
+    public void lowHitpointsDisablingAndSessionResetClearAndRearm()
+    {
+        when(config.enableLowHitpoints()).thenReturn(true);
+        when(client.getBoostedSkillLevel(Skill.HITPOINTS)).thenReturn(20);
+        plugin.onGameTick(new GameTick());
+        net.runelite.client.events.ConfigChanged event = new net.runelite.client.events.ConfigChanged();
+        event.setGroup("overheadreminder");
+        event.setKey("enableLowHitpoints");
+        when(config.enableLowHitpoints()).thenReturn(false);
+        plugin.onConfigChanged(event);
+        assertTrue(store.snapshot().isEmpty());
+        plugin.onGameTick(new GameTick());
+        assertTrue(store.snapshot().isEmpty());
+        when(config.enableLowHitpoints()).thenReturn(true);
+        plugin.onConfigChanged(event);
+        plugin.onGameTick(new GameTick());
+        assertEquals(1, store.snapshot().size());
+        GameStateChanged logout = new GameStateChanged();
+        logout.setGameState(GameState.LOGIN_SCREEN);
+        plugin.onGameStateChanged(logout);
+        assertTrue(store.snapshot().isEmpty());
+        plugin.onGameTick(new GameTick());
+        assertEquals(1, store.snapshot().size());
+        when(config.hitpointsThreshold()).thenReturn(10);
+        event.setKey("hitpointsThreshold");
+        plugin.onConfigChanged(event);
+        plugin.onGameTick(new GameTick());
+        assertTrue(store.snapshot().isEmpty());
+    }
+
+    @Test
     public void prayerUsesConfiguredDurationWithoutRefreshingOnSubsequentTicks()
     {
         when(client.getBoostedSkillLevel(Skill.PRAYER)).thenReturn(20);

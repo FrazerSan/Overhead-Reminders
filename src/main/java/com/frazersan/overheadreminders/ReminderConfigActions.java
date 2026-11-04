@@ -7,6 +7,7 @@ final class ReminderConfigActions
 {
     private static final String GROUP = "overheadreminder";
     private static final String[][] TIMERS = {
+        {"lowHitpointsDuration", "lowHitpointsUseGlobalTimer", ""},
         {"lowPrayerDuration", "lowPrayerUseGlobalTimer", ""},
         {"prayerRegenDuration", "prayerRegenUseGlobalTimer", "prayerRegenEarlyWarning"},
         {"prayerEnhanceDuration", "prayerEnhanceUseGlobalTimer", "prayerEnhanceEarlyWarning"},
@@ -34,6 +35,7 @@ final class ReminderConfigActions
         {"goadingDuration", "goadingUseGlobalTimer", "goadingEarlyWarning"}
     };
     private static final String[][] MESSAGES = {
+        {"lowHitpointsMessage", "Low Hitpoints"},
         {"lowPrayerMessage", "Low Prayer"},
         {"prayerRegenMessage", "Prayer regeneration potion Expired!"},
         {"prayerEnhanceMessage", "Prayer enhance potion Expired!"},
@@ -61,6 +63,7 @@ final class ReminderConfigActions
         {"goadingMessage", "Drink Goading"}
     };
     private static final String[] ENABLED = {
+        "enableLowHitpoints",
         "enableLowPrayer",
         "enablePrayerRegen",
         "enablePrayerEnhance",

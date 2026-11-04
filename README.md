@@ -8,6 +8,7 @@ RuneLite reminders for low prayer and expiring boosts & potions, stacked above y
 ## Features
 
 - Low-prayer warning with a configurable threshold, text, colour, and display duration.
+- Low-hitpoints warning with a configurable threshold, red text by default, and optional flashing.
 - Special attack energy reminders at optional 25%, 50%, 75% and 100% milestones, with full energy selected by default.
 - Independent, vertically stacked messages with optional remaining display seconds, configurable position, size, and spacing, alongside a preview quick action.
 - Reminders for Overload, Smelling Salts, Liquid Adrenaline, Divine potions, Melee(strength) Ranged and Magic based on threshold, Saturated Heart, Prayer Regeneration, Prayer Enhance, Thralls, Death Charge, Mark of Darkness, Ward of Arceuus, Stamina, Venom resistance, Antipoison, Antifire, Soulflame Horn, Goading potions, and Surge potions.
@@ -56,25 +57,6 @@ Use **Quick actions** at the top of the plugin settings for Show preview, Stop p
 If it does not appear immediately, restart RuneLite and search again. The development client is no longer required to use the plugin.
 
 Disable **Overhead Notifications** and **Prayer Overhead Text** when using this combined plugin to avoid separate duplicate warnings.
-
-
-
-## Development and testing
-
-Requires a Java 17 JDK with JAVA_HOME configured. Plugin source targets Java 11. From the project directory:
-
-```powershell
-.\gradlew.bat build
-.\gradlew.bat run
-```
-
-On Linux or macOS, use `./gradlew build` and `./gradlew run`. Run `gradlew.bat test` (or `./gradlew test`) for the automated tests.
-
-The development client registers the plugin directly. For Jagex Accounts, follow [RuneLite's development-client login guide](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
-
-There are 127 automated tests covering thresholds, rearming, stacking, independent expiry, duplicate suppression, successful/failed recasts with live-client message formatting, lifecycle cleanup, Death Charge timing, rendering, combat inventory checks across styles, boost thresholds, fixed-effect exclusions, pie tracking, reboost clearing, optional sidebar visibility and quick actions. The user has also confirmed gameplay behavior, including low-prayer restoration and thrall/Ward recast clearing.
-
-On Windows, the development run task disables Java 2D interface acceleration to avoid the [known sidebar artifacting issue](https://github.com/runelite/runelite/wiki/Disable-Hardware-Acceleration). This leaves the game's GPU/117 HD plugins available.
 
 
 

@@ -8,6 +8,9 @@ import java.util.function.ToIntFunction;
 /** Common settings keep chat, timer and stat reminders consistent. */
 enum ReminderType
 {
+    LOW_HITPOINTS("Low Hitpoints", OverheadNotificationsConfig::enableLowHitpoints, OverheadNotificationsConfig::lowHitpointsMessage,
+        OverheadNotificationsConfig::lowHitpointsColor, OverheadNotificationsConfig::lowHitpointsUseGlobalTimer,
+        OverheadNotificationsConfig::lowHitpointsDuration, c -> 0),
     LOW_PRAYER("Low Prayer", OverheadNotificationsConfig::enableLowPrayer, OverheadNotificationsConfig::lowPrayerMessage,
         OverheadNotificationsConfig::lowPrayerColor, OverheadNotificationsConfig::lowPrayerUseGlobalTimer,
         OverheadNotificationsConfig::lowPrayerDuration, c -> 0),

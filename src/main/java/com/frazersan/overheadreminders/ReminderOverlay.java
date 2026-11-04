@@ -76,7 +76,13 @@ public class ReminderOverlay extends Overlay
             String text = entry.displayText(notifications.now(), config.showCountdown(), message);
             Point location = new Point(anchor.getX() + config.horizontalOffset() - metrics.stringWidth(text) / 2,
                 anchor.getY() - row++ * (metrics.getHeight() + config.messageSpacing()));
-            OverlayUtil.renderTextLocation(graphics, location, text, entry.color);
+            java.awt.Color color = entry.color;
+            if (ReminderType.LOW_HITPOINTS.key.equals(entry.key) && config.lowHitpointsFlash()
+                && (notifications.now() / 500_000_000L) % 2 != 0)
+            {
+                color = java.awt.Color.YELLOW;
+            }
+            OverlayUtil.renderTextLocation(graphics, location, text, color);
         }
         return null;
     }

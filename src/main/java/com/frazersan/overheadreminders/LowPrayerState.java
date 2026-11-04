@@ -1,6 +1,6 @@
 package com.frazersan.overheadreminders;
 
-/** Threshold latch: display expiry alone cannot rearm a low-prayer warning. */
+/** Threshold latch: display expiry alone cannot rearm a low-stat warning. */
 final class LowPrayerState
 {
     private boolean low;

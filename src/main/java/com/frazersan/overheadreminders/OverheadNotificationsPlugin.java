@@ -103,6 +103,7 @@ public class OverheadNotificationsPlugin extends Plugin
     private boolean deathChargeWarned;
 
     private final LowPrayerState lowPrayer = new LowPrayerState();
+    private final LowPrayerState lowHitpoints = new LowPrayerState();
     private final SpecialAttackReminderController specialAttack = new SpecialAttackReminderController();
     private DeathChargeTimer timer = null;
     private List<TriggerRule> triggerRules;
@@ -120,6 +121,7 @@ public class OverheadNotificationsPlugin extends Plugin
         boostReminders.reset();
         lowPrayer.reset();
         specialAttack.reset(notifications);
+        lowHitpoints.reset();
         overlayManager.add(overlay);
 
         triggerRules = List.of(
@@ -244,6 +246,20 @@ public class OverheadNotificationsPlugin extends Plugin
         timedReminders.onGameTick();
         boostReminders.onGameTick();
         specialAttack.update(client.getVarpValue(net.runelite.api.gameval.VarPlayerID.SA_ENERGY), config, notifications);
+        int hitpoints = client.getBoostedSkillLevel(Skill.HITPOINTS);
+        if (config.enableLowHitpoints() && hitpoints > 0)
+        {
+            if (hitpoints > config.hitpointsThreshold()) notifications.remove(ReminderType.LOW_HITPOINTS.key);
+            if (lowHitpoints.update(hitpoints, config.hitpointsThreshold()))
+            {
+                ReminderType.LOW_HITPOINTS.show(config, notifications);
+            }
+        }
+        else
+        {
+            lowHitpoints.reset();
+            notifications.remove(ReminderType.LOW_HITPOINTS.key);
+        }
         if (timer.getState() != DeathChargeTimerState.IDLE)
         {
             if (config.enableDeathCharge() && !deathChargeWarned
@@ -319,6 +335,11 @@ public class OverheadNotificationsPlugin extends Plugin
             return;
         }
         preview.refresh(config);
+        if ("enableLowHitpoints".equals(key) || "hitpointsThreshold".equals(key))
+        {
+            lowHitpoints.reset();
+            notifications.remove(ReminderType.LOW_HITPOINTS.key);
+        }
         if (key.startsWith("meleeBoost") || key.startsWith("magicBoost") || key.startsWith("rangedBoost")
             || key.startsWith("wildPie") || key.startsWith("summerPie"))
         {
@@ -386,6 +407,7 @@ public class OverheadNotificationsPlugin extends Plugin
         timedReminders.reset();
         deathChargeWarned = false;
         lowPrayer.reset();
+        lowHitpoints.reset();
         specialAttack.reset(notifications);
         if (timer != null)
         {

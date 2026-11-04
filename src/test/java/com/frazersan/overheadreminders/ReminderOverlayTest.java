@@ -15,6 +15,41 @@ import static org.mockito.Mockito.*;
 public class ReminderOverlayTest
 {
     @Test
+    public void hitpointsFlashingAlternatesOnlyItsOwnRowAndCanBeDisabled()
+    {
+        Client client = mock(Client.class);
+        Player player = mock(Player.class);
+        OverheadNotificationsConfig config = mock(OverheadNotificationsConfig.class, CALLS_REAL_METHODS);
+        when(client.getLocalPlayer()).thenReturn(player);
+        when(client.getGameState()).thenReturn(GameState.LOGGED_IN);
+        when(player.getCanvasTextLocation(any(Graphics2D.class), anyString(), anyInt()))
+            .thenReturn(new Point(150, 150));
+        java.util.concurrent.atomic.AtomicLong clock = new java.util.concurrent.atomic.AtomicLong();
+        NotificationStore store = new NotificationStore(clock::get);
+        store.show("Low Hitpoints", "Low Hitpoints", Color.RED, 0);
+        store.show("Thrall", "Cast Thrall", Color.CYAN, 0);
+        ReminderOverlay overlay = new ReminderOverlay(client, store, config);
+        when(config.lowHitpointsFlash()).thenReturn(true);
+        for (int phase = 0; phase < 4; phase++)
+        {
+            clock.set(phase * 500_000_000L);
+            if (phase == 3) when(config.lowHitpointsFlash()).thenReturn(false);
+            BufferedImage image = new BufferedImage(300, 200, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D graphics = image.createGraphics();
+            try
+            {
+                overlay.render(graphics);
+                int height = graphics.getFontMetrics().getHeight() + 2;
+                Color expected = phase == 1 ? Color.YELLOW : Color.RED;
+                assertTrue(hasColor(image, expected, 150 - height + 2, 151));
+                assertTrue(hasColor(image, Color.CYAN, 150 - 2 * height + 2, 150 - height + 1));
+                verify(player, never()).setOverheadText(any());
+            }
+            finally { graphics.dispose(); }
+        }
+    }
+
+    @Test
     public void simultaneousMessagesRenderOnSeparateRowsWithoutChangingPlayerText()
     {
         Client client = mock(Client.class);
