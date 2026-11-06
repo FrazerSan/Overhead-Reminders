@@ -8,21 +8,24 @@ public interface OverheadNotificationsConfig extends Config
 {
     String reminderDivider = "<html><hr width='190' size='1' color='#505050'></html>";
 
-    @ConfigItem(keyName = "quickActionHeading", name = "Quick actions", description = "", position = -10)
+    @ConfigItem(keyName = "quickActionHeading", name = "Quick actions", description = "", position = -11)
     void quickActionHeading();
 
-    @ConfigItem(keyName = "quickAction", name = "", description = "Preview messages, enable or disable all reminders, reset appearance/timers/messages, or switch all timer toggles. Runs once, then returns to Select an action", position = -9)
+    @ConfigItem(keyName = "quickAction", name = "", description = "Preview messages, enable or disable all reminders, reset appearance/timers/messages, or switch all timer toggles. Runs once, then returns to Select an action", position = -10)
     default ReminderQuickAction quickAction() { return ReminderQuickAction.NONE; }
 
-    @ConfigItem(keyName = "showSidebarIcon", name = "Show sidebar icon", description = "Show the optional tools sidebar. All tools are also available in Quick actions", position = -8)
+    @ConfigItem(keyName = "showSidebarIcon", name = "Show sidebar icon", description = "Show the optional tools sidebar. All tools are also available in Quick actions", position = -9)
     default boolean showSidebarIcon() { return false; }
 
     @Range(min = 0, max = 300)
-    @ConfigItem(keyName = "overheadDisplayTime", name = "Overhead Display Time", description = "Time to display overhead text, in seconds (0-300). 0 stays until cleared", position = -7)
+    @ConfigItem(keyName = "overheadDisplayTime", name = "Overhead Display Time", description = "Time to display overhead text, in seconds (0-300). 0 stays until cleared", position = -8)
     default int overheadDisplayTime() { return 15; }
 
-    @ConfigItem(keyName = "showCountdown", name = "Show remaining seconds", description = "Append remaining display time to each message", position = -6)
+    @ConfigItem(keyName = "showCountdown", name = "Show remaining seconds", description = "Append remaining display time to each message", position = -7)
     default boolean showCountdown() { return false; }
+
+    @ConfigItem(keyName = "showOutOfSupplies", name = "Show out-of-supplies", description = "Check inventory and show Out of followed by the item name when supplies are missing. Turn off to keep normal reminder text", position = -6)
+    default boolean showOutOfSupplies() { return true; }
 
     @Range(min = 0, max = 200)
     @ConfigItem(keyName = "verticalOffset", name = "Height above player", description = "Extra height above your player in scene units", position = -5)
@@ -39,9 +42,6 @@ public interface OverheadNotificationsConfig extends Config
     @Range(min = 0, max = 32)
     @ConfigItem(keyName = "textSize", name = "Text size", description = "Font size in pixels. 0 uses the original RuneScape bold font", position = -2)
     default int textSize() { return 0; }
-
-    @ConfigItem(keyName = "showOutOfSupplies", name = "Show out-of-supplies", description = "Check inventory and show Out of followed by the item name when supplies are missing. Turn off to keep normal reminder text", position = -1)
-    default boolean showOutOfSupplies() { return true; }
 
     @ConfigSection(name = "Hitpoints", description = "Low hitpoints reminder", position = -1, closedByDefault = true)
     String hitpointsSection = "hitpointsSection";

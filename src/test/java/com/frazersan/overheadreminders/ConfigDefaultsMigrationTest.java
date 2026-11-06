@@ -23,7 +23,7 @@ public class ConfigDefaultsMigrationTest
     }
 
     @Test
-    public void storedOldDefaultsBecomeTitleCaseAndFifteenSeconds()
+    public void savedValuesMatchingOldDefaultsArePreserved()
     {
         Map<String, String> values = new HashMap<>();
         values.put("overheadDisplayTime", "3");
@@ -33,12 +33,12 @@ public class ConfigDefaultsMigrationTest
         values.put("rangedBoostMessage", "RANGED BOOST LOW!");
         values.put("summerPieMessage", "AGILITY BOOST LOW!");
         ConfigDefaultsMigration.apply(manager(values));
-        assertEquals("15", values.get("overheadDisplayTime"));
+        assertEquals("3", values.get("overheadDisplayTime"));
         assertEquals("0", values.get("lowPrayerDuration"));
         assertEquals("0", values.get("meleeBoostTimeout"));
-        assertEquals("Low Prayer", values.get("lowPrayerMessage"));
-        assertEquals("Drink Range Boost", values.get("rangedBoostMessage"));
-        assertEquals("Agility Boost", values.get("summerPieMessage"));
+        assertEquals("LOW PRAYER!", values.get("lowPrayerMessage"));
+        assertEquals("RANGED BOOST LOW!", values.get("rangedBoostMessage"));
+        assertEquals("AGILITY BOOST LOW!", values.get("summerPieMessage"));
     }
 
     @Test
@@ -76,7 +76,7 @@ public class ConfigDefaultsMigrationTest
         assertEquals("Agility Boost", config.summerPieMessage());
     }
     @Test
-    public void actionDefaultsUpdateOnceWithoutChangingCustomMessagesOrEnabledChoices()
+    public void oldAndCustomMessagesAndEnabledChoicesAreAllPreserved()
     {
         Map<String, String> values = new HashMap<>();
         values.put("tidyDefaultsRevision", "1");
@@ -86,7 +86,7 @@ public class ConfigDefaultsMigrationTest
         values.put("prayerRegenMessage", "Prayer regeneration potion Expired!");
         ConfigManager manager = manager(values);
         ConfigDefaultsMigration.apply(manager);
-        assertEquals("Drink Divine", values.get("divinePotMessage"));
+        assertEquals("Divine Expired!", values.get("divinePotMessage"));
         assertEquals("My thrall", values.get("thrallMessage"));
         assertEquals("true", values.get("enableLowPrayer"));
         assertEquals("Prayer regeneration potion Expired!", values.get("prayerRegenMessage"));
@@ -112,7 +112,7 @@ public class ConfigDefaultsMigrationTest
         assertEquals("Invigorate Saturated Heart", config.saturatedHeartMessage());
     }
     @Test
-    public void hornActiveDefaultUpdatesOnceAndZeroDurationsArePreserved()
+    public void savedHornWordingAndZeroDurationsArePreserved()
     {
         Map<String, String> values = new HashMap<>();
         values.put("soulflameHornMessage", "Blow Soulflame Horn");
@@ -121,7 +121,7 @@ public class ConfigDefaultsMigrationTest
         values.put("meleeBoostTimeout", "0");
         ConfigManager manager = manager(values);
         ConfigDefaultsMigration.apply(manager);
-        assertEquals("Soulflame Horn Active", values.get("soulflameHornMessage"));
+        assertEquals("Blow Soulflame Horn", values.get("soulflameHornMessage"));
         assertEquals("0", values.get("overheadDisplayTime"));
         assertEquals("0", values.get("lowPrayerDuration"));
         assertEquals("0", values.get("meleeBoostTimeout"));
@@ -142,10 +142,41 @@ public class ConfigDefaultsMigrationTest
         ConfigDefaultsMigration.apply(manager);
         assertEquals("false", values.get("lowPrayerUseGlobalTimer"));
         assertEquals("false", values.get("meleeBoostUseGlobalTimer"));
-        assertFalse(values.containsKey("magicBoostUseGlobalTimer"));
+        assertEquals("false", values.get("magicBoostUseGlobalTimer"));
         assertEquals("true", values.get("rangedBoostUseGlobalTimer"));
         values.put("lowPrayerUseGlobalTimer", "true");
         ConfigDefaultsMigration.apply(manager);
         assertEquals("true", values.get("lowPrayerUseGlobalTimer"));
+    }
+
+    @Test
+    public void repeatedUpdatesLeaveExistingProfileSettingsExactlyAsSaved()
+    {
+        Map<String, String> values = new HashMap<>();
+        values.put("sharedTimerDefaultsRevision", "1");
+        values.put("overheadDisplayTime", "3");
+        values.put("lowPrayerMessage", "LOW PRAYER!");
+        values.put("divinePotMessage", "Divine Expired!");
+        values.put("soulflameHornMessage", "Blow Soulflame Horn");
+        values.put("enableLowPrayer", "true");
+        values.put("enableThrall", "false");
+        values.put("prayerThreshold", "25");
+        values.put("lowPrayerColor", "123456");
+        values.put("lowPrayerDuration", "0");
+        values.put("lowPrayerUseGlobalTimer", "true");
+        values.put("thrallEarlyWarning", "10");
+        values.put("verticalOffset", "80");
+        values.put("horizontalOffset", "-20");
+        values.put("textSize", "24");
+        values.put("messageSpacing", "10");
+        values.put("showOutOfSupplies", "false");
+        values.put("showSidebarIcon", "true");
+        Map<String, String> before = new HashMap<>(values);
+        ConfigManager manager = manager(values);
+        ConfigDefaultsMigration.apply(manager);
+        ConfigDefaultsMigration.apply(manager);
+        assertEquals(before, values);
+        verify(manager, never()).setConfiguration(anyString(), anyString(), any());
+        assertFalse(values.containsKey("enableLowHitpoints"));
     }
 }

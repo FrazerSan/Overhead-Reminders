@@ -38,7 +38,13 @@ import java.util.List;
 @PluginDescriptor(
         name = "Overhead Reminders",
         description = "Stacked reminders for low prayer, expiring effects, combat boosts and pies",
-        tags = {"overhead", "notification", "chat", "thrall", "overload", "boost", "raid", "slayer", "reminder", "remind"}
+        tags = {"pvm", "combat", "prayer", "low prayer", "hitpoints", "low hitpoints", "hp", "health",
+            "special attack", "spec", "energy", "thrall", "arceuus", "death charge", "mark of darkness",
+            "ward of arceuus", "boost", "overhead", "notification", "alert", "timer", "countdown", "unpotted",
+            "slayer", "agility", "pie", "wild pie", "summer pie", "raid", "raids", "cox", "toa", "nmz",
+            "overload", "smelling salts", "liquid adrenaline", "divine", "saturated heart", "melee", "strength",
+            "ranged", "magic", "stamina", "goading", "antipoison", "anti-venom", "antivenom", "antifire",
+            "surge", "prayer regeneration", "prayer enhance", "soulflame horn", "supplies", "reminder", "remind"}
 )
 public class OverheadNotificationsPlugin extends Plugin
 {

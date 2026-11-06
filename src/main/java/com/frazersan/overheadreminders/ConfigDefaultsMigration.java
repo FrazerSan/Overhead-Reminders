@@ -1,103 +1,33 @@
 package com.frazersan.overheadreminders;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import net.runelite.client.config.ConfigManager;
 
-/** Update stored old defaults once, preserving other values and later user edits. */
+/** Preserve saved settings. Only fill missing compatibility choices for older timers. */
 final class ConfigDefaultsMigration
 {
     private static final String GROUP = "overheadreminder";
-    private static final String REVISION = "tidyDefaultsRevision";
 
     static void apply(ConfigManager manager)
     {
-        applyOldDefaults(manager);
-        if (!"1".equals(manager.getConfiguration(GROUP, "sharedTimerDefaultsRevision")))
-        {
-            String[][] customTimers = {
-                {"lowPrayerDuration", "lowPrayerUseGlobalTimer"},
-                {"meleeBoostTimeout", "meleeBoostUseGlobalTimer"},
-                {"magicBoostTimeout", "magicBoostUseGlobalTimer"},
-                {"rangedBoostTimeout", "rangedBoostUseGlobalTimer"},
-                {"wildPieTimeout", "wildPieUseGlobalTimer"},
-                {"summerPieTimeout", "summerPieUseGlobalTimer"}
-            };
-            for (String[] custom : customTimers)
-            {
-                String duration = manager.getConfiguration(GROUP, custom[0]);
-                if (duration != null && !"15".equals(duration)
-                    && manager.getConfiguration(GROUP, custom[1]) == null)
-                {
-                    manager.setConfiguration(GROUP, custom[1], "false");
-                }
-            }
-            manager.setConfiguration(GROUP, "sharedTimerDefaultsRevision", "1");
-        }
-        if (!"1".equals(manager.getConfiguration(GROUP, "hornActiveDefaultsRevision")))
-        {
-            String horn = manager.getConfiguration(GROUP, "soulflameHornMessage");
-            if ("Blow Soulflame Horn".equals(horn) || "Soulflame Horn Active!".equals(horn))
-            {
-                manager.setConfiguration(GROUP, "soulflameHornMessage", "Soulflame Horn Active");
-            }
-            manager.setConfiguration(GROUP, "hornActiveDefaultsRevision", "1");
-        }
-        if ("1".equals(manager.getConfiguration(GROUP, "actionDefaultsRevision")))
-        {
-            return;
-        }
-        // Only replace exact former defaults. Never disable a saved enabled choice.
-        String[][] messages = {
-            {"divinePotMessage", "Divine Expired!", "Drink Divine"},
-            {"saturatedHeartMessage", "Saturated Heart Expired!", "Invigorate Saturated Heart"},
-            {"meleeBoostMessage", "Melee Boost", "Drink Melee Boost"},
-            {"magicBoostMessage", "Magic Boost", "Drink Magic Boost"},
-            {"rangedBoostMessage", "Range Boost", "Drink Range Boost"},
-            {"overloadMessage", "Overload Expired!", "Drink Overload"},
-            {"smellingSaltMessage", "Smelling Salt Expired!", "Use Smelling Salt"},
-            {"thrallMessage", "Thrall Expired!", "Cast Thrall"},
-            {"deathChargeMessage", "Death Charge Ready!", "Cast Death Charge"},
-            {"markOfDarknessMessage", "Mark of Darkness expired!", "Cast Mark of Darkness"},
-            {"WardOfArceuusMessage", "Ward of Arceuus expired!", "Cast Ward of Arceuus"},
-            {"surgePotionMessage", "Surge Potion Ready!", "Drink Surge"},
-            {"staminaMessage", "Stamina potion Expired!", "Drink Stamina"},
-            {"antiPoisonMessage", "AntiPoison Expired!", "Drink Antipoison"},
-            {"venomMessage", "Venom protection Expired!", "Drink Anti-venom"},
-            {"antifireMessage", "Antifire protection Expired!", "Drink Antifire"}
+        if ("1".equals(manager.getConfiguration(GROUP, "sharedTimerDefaultsRevision"))) return;
+        String[][] legacyTimers = {
+            {"lowPrayerDuration", "lowPrayerUseGlobalTimer"},
+            {"meleeBoostTimeout", "meleeBoostUseGlobalTimer"},
+            {"magicBoostTimeout", "magicBoostUseGlobalTimer"},
+            {"rangedBoostTimeout", "rangedBoostUseGlobalTimer"},
+            {"wildPieTimeout", "wildPieUseGlobalTimer"},
+            {"summerPieTimeout", "summerPieUseGlobalTimer"}
         };
-        for (String[] message : messages)
+        for (String[] timer : legacyTimers)
         {
-            if (message[1].equals(manager.getConfiguration(GROUP, message[0])))
+            // Before shared timers, these saved durations applied directly. Keep
+            // that behaviour, including an explicitly saved 15-second duration.
+            if (manager.getConfiguration(GROUP, timer[0]) != null
+                && manager.getConfiguration(GROUP, timer[1]) == null)
             {
-                manager.setConfiguration(GROUP, message[0], message[2]);
+                manager.setConfiguration(GROUP, timer[1], "false");
             }
         }
-        manager.setConfiguration(GROUP, "actionDefaultsRevision", "1");
-    }
-
-    private static void applyOldDefaults(ConfigManager manager)
-    {
-        if ("1".equals(manager.getConfiguration(GROUP, REVISION)))
-        {
-            return;
-        }
-        Map<String, String[]> replacements = new LinkedHashMap<>();
-        replacements.put("overheadDisplayTime", new String[] {"3", "15"});
-        replacements.put("lowPrayerMessage", new String[] {"LOW PRAYER!", "Low Prayer"});
-        replacements.put("meleeBoostMessage", new String[] {"MELEE BOOST LOW!", "Melee Boost"});
-        replacements.put("magicBoostMessage", new String[] {"MAGIC BOOST LOW!", "Magic Boost"});
-        replacements.put("rangedBoostMessage", new String[] {"RANGED BOOST LOW!", "Range Boost"});
-        replacements.put("wildPieMessage", new String[] {"SLAYER BOOST LOW!", "Slayer Boost"});
-        replacements.put("summerPieMessage", new String[] {"AGILITY BOOST LOW!", "Agility Boost"});
-        for (Map.Entry<String, String[]> entry : replacements.entrySet())
-        {
-            String[] values = entry.getValue();
-            if (values[0].equals(manager.getConfiguration(GROUP, entry.getKey())))
-            {
-                manager.setConfiguration(GROUP, entry.getKey(), values[1]);
-            }
-        }
-        manager.setConfiguration(GROUP, REVISION, "1");
+        manager.setConfiguration(GROUP, "sharedTimerDefaultsRevision", "1");
     }
 }
