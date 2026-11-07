@@ -19,7 +19,8 @@ RuneLite reminders for low prayer and expiring boosts & potions, stacked above y
 
 Reminder sections start collapsed. RuneLite remembers opened/closed sections while the client is running; a full restart starts them collapsed again.
 
-<img width="240" height="485" alt="image" src="https://github.com/user-attachments/assets/cd341ac4-5026-45df-9e91-3e951622d217" />
+
+<img width="247" height="507" alt="image" src="https://github.com/user-attachments/assets/d73467ab-6ec0-4db7-b453-8c05a3618bfd" />
 
 
 **Overhead Display Time** is the shared display duration (default 15 seconds, maximum 300 seconds). Every reminder has a **Use global timer** toggle, enabled by default. Turn it off to use that reminder's own display time. **0** always means no timeout, whether chosen globally or individually. Existing custom duration choices are retained on upgrade.
